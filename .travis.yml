@@ -2,6 +2,12 @@ language: python
 python:
   - "3.8"
 install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  - bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
   - conda create -n assignment1
   - conda activate accignment1
   - conda install -c conda-forge pygraphblas 
