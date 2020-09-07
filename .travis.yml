@@ -9,7 +9,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda create -n assignment1
-  - conda activate accignment1
+  - conda activate assignment1
   - conda install -c conda-forge pygraphblas 
   - pip install -r requirements.txt
 script:
