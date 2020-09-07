@@ -8,9 +8,9 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  - conda create -n assignment1
+  - conda create -q -n assignment1
   - conda activate assignment1
   - conda install -c conda-forge pygraphblas 
-  - pip3 install pyformlang
+  - pip install -r requirements.txt
 script:
   - pytest tests/main.py
