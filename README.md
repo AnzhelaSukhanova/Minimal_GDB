@@ -10,7 +10,7 @@ There are some simple tests to review:
 1) the functionality of the pygraphblas and pyformlang libraries;
 2) the implementation of graph intersection using tensor product.
 They can be run with the command:  
-`pytest src/tests.py`.
+`pytest src/tests.py`.  
 To see the output of the graph intersection function (in the form of a pair "label — number of edges marked by it") use:  
 `python src/main.py tests/graph<number>.txt tests/auto<number>.txt`.
 
