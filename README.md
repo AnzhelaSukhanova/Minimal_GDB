@@ -8,7 +8,8 @@ Or you can install the pygraphblas by following the instuctions from https://git
 ### Tests
 There are some simple tests to review:
 1) the functionality of the pygraphblas and pyformlang libraries;
-2) the implementation of graph intersection using tensor product.
+2) the implementation of graph intersection using tensor product.  
+
 They can be run with the command:  
 `pytest src/tests.py`.  
 To see the output of the graph intersection function (in the form of a pair "label — number of edges marked by it") use:  
