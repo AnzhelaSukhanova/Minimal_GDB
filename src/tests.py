@@ -6,8 +6,8 @@ import main
 def test_graph_inter():
     graph = main.Graph()
     automaton = main.Graph()
-    graph.scan("../tests/graph0.txt")
-    automaton.scan_regexp("../tests/auto0.txt")
+    graph.scan("tests/graph0.txt")
+    automaton.scan_regexp("tests/auto0.txt")
     automaton.intersection(graph)
 
 
