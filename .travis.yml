@@ -13,4 +13,4 @@ install:
   - conda install -c conda-forge pygraphblas 
   - pip install -r requirements.txt
 script:
-  - pytest tests/main.py
+  - pytest src/main.py

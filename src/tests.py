@@ -1,7 +1,6 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
 from pygraphblas import *
 
-
 def test_mxm():
     A = Matrix.from_lists(
         [0, 0, 1, 3, 3, 4, 1, 5],
@@ -39,8 +38,3 @@ def test_enfa_inter():
 
     enfa = enfa1.get_intersection(enfa2)
     assert enfa.is_equivalent_to(enfa2)
-
-
-if __name__ == '__main__':
-    test_enfa_inter()
-    test_mxm()
