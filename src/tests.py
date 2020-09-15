@@ -1,5 +1,15 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
 from pygraphblas import *
+import main
+
+
+def test_graph_inter():
+    graph = main.Graph()
+    automaton = main.Graph()
+    graph.scan("../tests/graph0.txt")
+    automaton.scan_regexp("../tests/auto0.txt")
+    automaton.intersection(graph)
+
 
 def test_mxm():
     A = Matrix.from_lists(

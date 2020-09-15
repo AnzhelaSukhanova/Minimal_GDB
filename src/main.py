@@ -1,6 +1,5 @@
 from pyformlang.regular_expression import Regex
 from pygraphblas import *
-import tests
 import sys
 
 
@@ -30,7 +29,7 @@ class Graph:
         for i in range(self.size):
             self.start_states.append(i)
             self.final_states.append(i)
-        return graph
+        return self
 
     def scan_regexp(self, file_name):
         f = open(file_name, 'r')
@@ -57,7 +56,7 @@ class Graph:
         self.start_states.append(states[automaton.start_state])
         for state in automaton._final_states:
             self.final_states.append(states[state])
-        return graph
+        return self
 
     def intersection(self, other):
         res = Graph()
@@ -112,5 +111,3 @@ if __name__ == '__main__':
         graph.scan(sys.argv[1])
         automaton.scan_regexp(sys.argv[2])
         automaton.intersection(graph)
-    tests.test_enfa_inter()
-    tests.test_mxm()
