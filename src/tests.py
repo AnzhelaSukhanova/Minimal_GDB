@@ -1,5 +1,30 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
 from pygraphblas import *
+import main
+
+
+def test_graph_inter():
+    graph = main.Graph()
+    automaton = main.Graph()
+
+    print("\n\ngraph0.txt", "auto0.txt:")
+    graph.scan("tests/graph0.txt")
+    automaton.scan_regexp("tests/auto0.txt")
+    res = automaton.intersection(graph)
+    assert graph.label_boolM["he11o"] == res.label_boolM["he11o"]
+    assert res.reachability_all() == Matrix.dense(BOOL, 3, 3).full(1)
+
+    print("graph1.txt", "auto1.txt:")
+    graph.scan("tests/graph1.txt")
+    automaton.scan_regexp("tests/auto1.txt")
+    res = automaton.intersection(graph)
+    assert res.size == 10000
+    
+    print("graph0.txt", "auto1.txt:")
+    graph.scan("tests/graph0.txt")
+    automaton.scan_regexp("tests/auto1.txt")
+    res = automaton.intersection(graph)
+    assert not res.label_boolM
 
 
 def test_mxm():
@@ -39,8 +64,3 @@ def test_enfa_inter():
 
     enfa = enfa1.get_intersection(enfa2)
     assert enfa.is_equivalent_to(enfa2)
-
-
-if __name__ == '__main__':
-    test_enfa_inter()
-    test_mxm()

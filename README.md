@@ -5,7 +5,14 @@ You will need the pygraphblas and pyformlang to work with this project. They can
 `conda install -c conda-forge pygraphblas ; pip3 install pyformlang`  
 Or you can install the pygraphblas by following the instuctions from https://github.com/michelp/pygraphblas.
 
-### Assignment 1
-There are two simple tests for the functionality of the pygraphblas and pyformlang libraries. They can be run with the command:  
-`pytest tests/main.py`.
+### Tests
+There are some simple tests to review:
+1) the functionality of the pygraphblas and pyformlang libraries;
+2) the implementation of graph intersection using tensor product.  
+
+They can be run with the command:  
+`pytest -s src/tests.py`.  
+To see the output of the graph intersection function on specific graphs/automatons (in the form of a pair "label — number of edges marked by it") use:  
+`python src/main.py tests/graph<number>.txt tests/auto<number>.txt`.  
+Also there are implementations of reachability requests between all pairs of vertices (reachability\_all() in src/main.py), from set of vertices (reachability\_from() in src/main.py) and from one set of vertices to another (reachability\_from\_to() in src/main.py).
 
