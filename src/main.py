@@ -11,6 +11,7 @@ class Graph:
         self.final_states = []
 
     def scan(self, file_name):
+        self.__init__()
         f = open(file_name, 'r')
         for line in f:
             i, w, j = line.split(" ")
@@ -32,22 +33,23 @@ class Graph:
         return self
 
     def scan_regexp(self, file_name):
+        self.__init__()
         f = open(file_name, 'r')
-        automaton = Regex(f.read()).to_epsilon_nfa().to_deterministic().minimize()
+        automaton = Regex(f.read().rstrip()).to_epsilon_nfa()\
+            .to_deterministic().minimize()
         f.close()
         states = {}
         i = 0
         for state in automaton._states:
-            states[state] = i
-            i = i + 1
+            if state not in states:
+                states[state] = i
+                i = i + 1
+        self.size = i
         for i in automaton._states:
             for symbol in automaton._input_symbols:
                 in_states = automaton._transition_function(i, symbol)
                 for j in in_states:
-                    self.size = max(max(states[i], states[j]) + 1, self.size)
                     if symbol in self.label_boolM:
-                        if self.size > self.label_boolM[symbol].nrows:
-                            self.label_boolM[symbol].resize(self.size, self.size)
                         self.label_boolM[symbol][states[i], states[j]] = 1
                     else:
                         bool_M = Matrix.sparse(BOOL, self.size, self.size)
@@ -73,6 +75,7 @@ class Graph:
                 res.final_states.append(i * self.size + j)
         for label in res.label_boolM:
             print(label, "—", res.label_boolM[label].nvals)
+        print()
         return res
 
     def reachability_all(self):
