@@ -80,25 +80,26 @@ class Graph:
         return self
 
     def transitive_closure_adjM(self):
-        res = Matrix.identity(BOOL, self.size)
+        res = Matrix.sparse(BOOL, self.size, self.size)
         for label in self.label_boolM:
-            res = res + self.label_boolM[label]
+            res = res | self.label_boolM[label]
+        adjM = res.dup()
         for i in range(self.size):
             last_nvals = res.nvals
             with semiring.LOR_LAND_BOOL:
-                res += res @ res
+                res += adjM @ res
             if res.nvals == last_nvals:
                 break
         return res
 
     def transitive_closure_squaring(self):
-        res = Matrix.identity(BOOL, self.size)
+        res = Matrix.sparse(BOOL, self.size, self.size)
         for label in self.label_boolM:
-            res = res + self.label_boolM[label]
+            res += self.label_boolM[label]
         for i in range(self.size):
             old_nvals = res.nvals
             with semiring.LOR_LAND_BOOL:
-                res = res @ res
+                res += res @ res
             if res.nvals == old_nvals:
                 break
         return res
@@ -170,32 +171,31 @@ if __name__ == '__main__':
             graph.scan(args.files[0])
         elif args.type[0] == "regexp":
             graph.scan_regexp(args.files[0])
-        res = Matrix.identity(BOOL, graph.size)
         f = open("time_out.txt", 'a')
         f.write(str(args.files[0]) + "\n")
-        time_clos_adjM = timeit.repeat("res = graph.transitive_closure_adjM()",
-                                       setup="from __main__ import Graph, graph, res",
+        time_clos_adjM = timeit.repeat("graph.transitive_closure_adjM()",
+                                       setup="from __main__ import Graph, graph",
                                        repeat=5,
                                        number=1)
         res = graph.transitive_closure_adjM()
+        print(res.nvals)
         average = round(fmean(time_clos_adjM), 6)
         D = round(variance(time_clos_adjM), 6)
         time_clos_adjM = [round(t, 6) for t in time_clos_adjM]
         f.write("transitive_closure_adjM: " + str(time_clos_adjM) + " " +
                 str(average) + " " +
-                str(D) + " " +
-                str(res.nvals) + "\n")
+                str(D) + "\n")
 
-        time_clos_squar = timeit.repeat("res = graph.transitive_closure_squaring()",
-                                        setup="from __main__ import Graph, graph, res",
+        time_clos_squar = timeit.repeat("graph.transitive_closure_squaring()",
+                                        setup="from __main__ import Graph, graph",
                                         repeat=5,
                                         number=1)
         res = graph.transitive_closure_squaring()
+        print(res.nvals)
         average = round(fmean(time_clos_squar), 6)
         D = round(variance(time_clos_squar), 6)
         time_clos_squar = [round(t, 6) for t in time_clos_squar]
         f.write("transitive_closure_squaring: " + str(time_clos_squar) + " " +
                 str(average) + " " +
-                str(D) + " " +
-                str(res.nvals) + "\n\n")
+                str(D) + "\n\n")
         f.close()
