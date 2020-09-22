@@ -16,3 +16,8 @@ To see the output of the graph intersection function on specific graphs/automato
 `python src/main.py tests/graph<number>.txt tests/auto<number>.txt`.  
 Also there are implementations of reachability requests between all pairs of vertices (reachability\_all() in src/main.py), from set of vertices (reachability\_from() in src/main.py) and from one set of vertices to another (reachability\_from\_to() in src/main.py).
 
+### Time measurements
+To get some test data (files with graphs and regular expressions) use:  
+`gdown https://drive.google.com/uc?id=158g01o2rpdq5eL3Ari8e5SPbbeZTJspr`
+Only then can you run time.sh.
+
