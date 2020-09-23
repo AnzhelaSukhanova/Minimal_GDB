@@ -1,6 +1,8 @@
 from pyformlang.regular_expression import Regex
 from pygraphblas import *
-import sys
+import timeit
+import argparse
+from statistics import fmean, variance
 
 
 class Graph:
@@ -15,12 +17,14 @@ class Graph:
         f = open(file_name, 'r')
         for line in f:
             i, w, j = line.split(" ")
+            self.size = max(max(int(i), int(j)) + 1, self.size)
+        f.close()
+        f = open(file_name, 'r')
+        for line in f:
+            i, w, j = line.split(" ")
             i = int(i)
             j = int(j)
-            self.size = max(max(i, j) + 1, self.size)
             if w in self.label_boolM:
-                if self.size > self.label_boolM[w].nrows:
-                    self.label_boolM[w].resize(self.size, self.size)
                 self.label_boolM[w][i, j] = 1
             else:
                 bool_M = Matrix.sparse(BOOL, self.size, self.size)
@@ -60,43 +64,55 @@ class Graph:
             self.final_states.append(states[state])
         return self
 
-    def intersection(self, other):
-        res = Graph()
+    def intersection(self, fst, snd):
+        self.__init__()
+        for label in fst.label_boolM:
+            if label in snd.label_boolM:
+                self.label_boolM[label] = \
+                    fst.label_boolM[label].kronecker(snd.label_boolM[label])
+        self.size = fst.size * snd.size
+        for i in fst.start_states:
+            for j in snd.start_states:
+                self.start_states.append(i * fst.size + j)
+        for i in fst.final_states:
+            for j in snd.final_states:
+                self.final_states.append(i * fst.size + j)
+        return self
+
+    def transitive_closure_adjM(self):
+        res = Matrix.sparse(BOOL, self.size, self.size)
         for label in self.label_boolM:
-            if label in other.label_boolM:
-                res.label_boolM[label] = \
-                    self.label_boolM[label].kronecker(other.label_boolM[label])
-        res.size = self.size * other.size
-        for i in self.start_states:
-            for j in other.start_states:
-                res.start_states.append(i * self.size + j)
-        for i in self.final_states:
-            for j in other.final_states:
-                res.final_states.append(i * self.size + j)
-        for label in res.label_boolM:
-            print(label, "—", res.label_boolM[label].nvals)
-        print()
+            res = res | self.label_boolM[label]
+        adjM = res.dup()
+        for i in range(self.size):
+            last_nvals = res.nvals
+            with semiring.LOR_LAND_BOOL:
+                res += adjM @ res
+            if res.nvals == last_nvals:
+                break
         return res
 
-    def reachability_all(self):
-        res = Matrix.random(BOOL, self.size, self.size, 0).full(0)
+    def transitive_closure_squaring(self):
+        res = Matrix.sparse(BOOL, self.size, self.size)
         for label in self.label_boolM:
-            if self.label_boolM[label].nrows < self.size:
-                self.label_boolM[label].resize(self.size, self.size)
-            res = res | self.label_boolM[label]
+            res += self.label_boolM[label]
         for i in range(self.size):
-            res += res @ res
+            old_nvals = res.nvals
+            with semiring.LOR_LAND_BOOL:
+                res += res @ res
+            if res.nvals == old_nvals:
+                break
         return res
 
     def reachability_from(self, set):
-        res = self.reachability_all()
+        res = self.transitive_closure_adjM()
         for i in range(self.size):
             if i not in set:
                 res.assign_row(i, Vector.sparse(BOOL, self.size).full(0))
         return res
 
     def reachability_from_to(self, set_from, set_to):
-        res = self.reachability_all()
+        res = self.transitive_closure_adjM()
         for i in range(self.size):
             if i not in set_from:
                 res.assign_row(i, Vector.sparse(BOOL, self.size).full(0))
@@ -104,13 +120,82 @@ class Graph:
                 res.assign_col(i, Vector.sparse(BOOL, self.size).full(0))
         return res
 
+    def print_inter(self):
+        for label in self.label_boolM:
+            print(label, "—", self.label_boolM[label].nvals)
+
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("You didn't provide a file with an input graph/automaton")
-    else:
-        graph = Graph()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--type', nargs=1,
+        choices=['graph', 'regexp'], required=False)
+    parser.add_argument(
+        'files', nargs='+')
+    args = parser.parse_args()
+
+    graph = Graph()
+    if len(args.files) == 2:
         automaton = Graph()
-        graph.scan(sys.argv[1])
-        automaton.scan_regexp(sys.argv[2])
-        automaton.intersection(graph)
+        res = Graph()
+        graph.scan(args.files[0])
+        automaton.scan_regexp(args.files[1])
+        time_inter = timeit.repeat("res.intersection(automaton, graph)",
+                                   setup="from __main__ import Graph, res, graph, automaton",
+                                   repeat=5,
+                                   number=1)
+        res.intersection(automaton, graph)
+        f = open("time_out.txt", 'a')
+        f.write(str(args.files[0]) + " " + str(args.files[1]) + "\n")
+        average = round(fmean(time_inter), 6)
+        D = round(variance(time_inter), 6)
+        time_inter = [round(t, 6) for t in time_inter]
+        f.write("intersection: " + str(time_inter) + " " +
+                str(average) + " " +
+                str(D) + "\n")
+
+        time_print = timeit.repeat("res.print_inter()",
+                                   setup="from __main__ import Graph, res",
+                                   repeat=5,
+                                   number=1)
+        average = round(fmean(time_print), 6)
+        D = round(variance(time_print), 6)
+        time_print = [round(t, 6) for t in time_print]
+        f.write("time_print: " + str(time_print) + " " +
+                str(average) + " " +
+                str(D) + "\n\n")
+        f.close()
+
+    elif len(args.files) == 1:
+        if args.type[0] == "graph":
+            graph.scan(args.files[0])
+        elif args.type[0] == "regexp":
+            graph.scan_regexp(args.files[0])
+        f = open("time_out.txt", 'a')
+        f.write(str(args.files[0]) + "\n")
+        time_clos_adjM = timeit.repeat("graph.transitive_closure_adjM()",
+                                       setup="from __main__ import Graph, graph",
+                                       repeat=5,
+                                       number=1)
+        res = graph.transitive_closure_adjM()
+        print(res.nvals)
+        average = round(fmean(time_clos_adjM), 6)
+        D = round(variance(time_clos_adjM), 6)
+        time_clos_adjM = [round(t, 6) for t in time_clos_adjM]
+        f.write("transitive_closure_adjM: " + str(time_clos_adjM) + " " +
+                str(average) + " " +
+                str(D) + "\n")
+
+        time_clos_squar = timeit.repeat("graph.transitive_closure_squaring()",
+                                        setup="from __main__ import Graph, graph",
+                                        repeat=5,
+                                        number=1)
+        res = graph.transitive_closure_squaring()
+        print(res.nvals)
+        average = round(fmean(time_clos_squar), 6)
+        D = round(variance(time_clos_squar), 6)
+        time_clos_squar = [round(t, 6) for t in time_clos_squar]
+        f.write("transitive_closure_squaring: " + str(time_clos_squar) + " " +
+                str(average) + " " +
+                str(D) + "\n\n")
+        f.close()

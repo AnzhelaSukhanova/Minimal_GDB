@@ -8,9 +8,12 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  - conda create -q -n assignment1
-  - conda activate assignment1
+  - conda create -q -n minGDB
+  - conda activate minGDB
   - conda install -c conda-forge pygraphblas 
   - pip install -r requirements.txt
+  - gdown https://drive.google.com/uc?id=158g01o2rpdq5eL3Ari8e5SPbbeZTJspr
+  - unzip refinedDataForRPQ.zip
 script:
   - pytest -s src/tests.py
+  - bash time.sh

@@ -6,25 +6,32 @@ import main
 def test_graph_inter():
     graph = main.Graph()
     automaton = main.Graph()
+    res = main.Graph()
 
     print("\n\ngraph0.txt", "auto0.txt:")
     graph.scan("tests/graph0.txt")
     automaton.scan_regexp("tests/auto0.txt")
-    res = automaton.intersection(graph)
+    res.intersection(graph, automaton)
     assert graph.label_boolM["he11o"] == res.label_boolM["he11o"]
-    assert res.reachability_all() == Matrix.dense(BOOL, 3, 3).full(1)
+    assert res.transitive_closure_adjM() == Matrix.dense(INT8, 3, 3).full(1)
+    res.print_inter()
+    print()
 
     print("graph1.txt", "auto1.txt:")
     graph.scan("tests/graph1.txt")
     automaton.scan_regexp("tests/auto1.txt")
-    res = automaton.intersection(graph)
+    res.intersection(graph, automaton)
     assert res.size == 10000
-    
+    res.print_inter()
+    print()
+
     print("graph0.txt", "auto1.txt:")
     graph.scan("tests/graph0.txt")
     automaton.scan_regexp("tests/auto1.txt")
-    res = automaton.intersection(graph)
+    res.intersection(graph, automaton)
     assert not res.label_boolM
+    res.print_inter()
+    print()
 
 
 def test_mxm():
