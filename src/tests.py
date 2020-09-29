@@ -1,6 +1,16 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
 from pygraphblas import *
 from classes import Graph
+import main
+
+
+def test_cyk():
+    cfg = main.scan_grammar("tests/grammar0.txt")
+    cfg_in_cfn = main.to_cfn(cfg)
+    print("\ngrammar0.txt:")
+    print("'5 5 5 5 5 5' —", main.cyk(cfg_in_cfn, "5 5 5 5 5 5"))
+    print("'55' —", main.cyk(cfg_in_cfn, "55"))
+    print("' ' —", main.cyk(cfg_in_cfn, " "))
 
 
 def test_graph_inter():

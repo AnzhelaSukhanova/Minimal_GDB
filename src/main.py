@@ -4,8 +4,8 @@ import check_time
 from collections import defaultdict
 
 
-def scan_grammar(args):
-    f = open(args.files[0], 'r')
+def scan_grammar(file_name):
+    f = open(file_name, 'r')
     productions = []
     for line in f:
         read_prod = line.split()
@@ -60,7 +60,7 @@ def cyk(cfg, word):
         return cfg.generate_epsilon()
     else:
         var_n = len(cfg.variables)
-        matrix = [[[False]*var_n]*word_size]*word_size
+        matrix = [[[False for _ in range(word_size)] for _ in range(word_size)] for _ in range(var_n)]
         var_i = dict(zip(cfg.variables, range(var_n)))
         sym_i = indices_of_dup(word)
         body_i = indices_of_dup(list(map(body_fst, cfg.productions)))
@@ -69,7 +69,7 @@ def cyk(cfg, word):
             if terminal in body_i:
                 for i in sym_i[sym]:
                     for j in body_i[terminal]:
-                        matrix[i][i][var_i[list(cfg.productions)[j].head]] = True
+                        matrix[var_i[list(cfg.productions)[j].head]][i][i] = True
         for i in range(word_size):
             for j in range(word_size):
                 for var in range(var_n):
@@ -77,20 +77,20 @@ def cyk(cfg, word):
                         for production in cfg.productions:
                             if production.head == Variable(list(cfg.productions)[var].head) and \
                                     len(production.body) == 2:
-                                matrix[i][j][var] += matrix[i][k][var_i[list(production.body)[0]]] | \
-                                                     matrix[k][j][var_i[list(production.body)[1]]]
-                            if matrix[i][j][var]:
+                                matrix[var][i][j] += matrix[var_i[list(production.body)[0]]][i][k] * \
+                                                     matrix[var_i[list(production.body)[1]]][k][j]
+                            if matrix[var][i][j]:
                                 break
-                        if matrix[i][j][var]:
+                        if matrix[var][i][j]:
                             break
-                    if matrix[i][j][var]:
+                    if matrix[var][i][j]:
                         break
-        '''for i in range(word_size):
+    '''for k in range(var_n):
+        for i in range(word_size):
             for j in range(word_size):
-                for k in range(var_n):
-                    print(matrix[i][j][k], " ")
-            print()'''
-    return matrix[word_size - 1][word_size - 1][var_i[cfg.start_symbol]]
+                print(list(cfg.variables)[k], i, j, matrix[k][i][j])
+    print()'''
+    return matrix[var_i[cfg.start_symbol]][0][0]
 
 
 if __name__ == '__main__':
@@ -102,11 +102,10 @@ if __name__ == '__main__':
         'files', nargs='+')
     args = parser.parse_args()
     if args.type == ['grammar']:
-        cfg = scan_grammar(args)
-        print(cfg.variables, cfg.terminals, cfg.productions)
+        cfg = scan_grammar(args.files[0])
         cfg_in_cfn = to_cfn(cfg)
-        print(cfg_in_cfn.variables, cfg_in_cfn.terminals, cfg_in_cfn.productions)
-        print(cyk(cfg_in_cfn, "5 5"))
+        word = input()
+        print("'", word, "' —", cyk(cfg_in_cfn, word))
     else:
         if len(args.files) == 2:
             check_time.inter_time(args)
