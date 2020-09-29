@@ -1,12 +1,12 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
 from pygraphblas import *
-import main
+from classes import Graph
 
 
 def test_graph_inter():
-    graph = main.Graph()
-    automaton = main.Graph()
-    res = main.Graph()
+    graph = Graph()
+    automaton = Graph()
+    res = Graph()
 
     print("\n\ngraph0.txt", "auto0.txt:")
     graph.scan("tests/graph0.txt")
