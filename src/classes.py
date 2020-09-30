@@ -16,21 +16,22 @@ class Graph:
             i, w, j = line.split()
             self.size = max(max(int(i), int(j)) + 1, self.size)
         f.close()
-        f = open(file_name, 'r')
-        for line in f:
-            i, w, j = line.split(" ")
-            i = int(i)
-            j = int(j)
-            if w in self.label_boolM:
-                self.label_boolM[w][i, j] = 1
-            else:
-                bool_M = Matrix.sparse(BOOL, self.size, self.size)
-                bool_M[i, j] = 1
-                self.label_boolM[w] = bool_M
-        f.close()
-        for i in range(self.size):
-            self.start_states.append(i)
-            self.final_states.append(i)
+        if (self.size != 0):
+            f = open(file_name, 'r')
+            for line in f:
+                i, w, j = line.split(" ")
+                i = int(i)
+                j = int(j)
+                if w in self.label_boolM:
+                    self.label_boolM[w][i, j] = 1
+                else:
+                    bool_M = Matrix.sparse(BOOL, self.size, self.size).full(0)
+                    bool_M[i, j] = 1
+                    self.label_boolM[w] = bool_M
+            f.close()
+            for i in range(self.size):
+                self.start_states.append(i)
+                self.final_states.append(i)
         return self
 
     def scan_regexp(self, file_name):

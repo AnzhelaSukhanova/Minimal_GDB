@@ -5,15 +5,15 @@ GRAPHS=( [0]=refinedDataForRPQ/LUBM300/LUBM300.txt [1]=refinedDataForRPQ/LUBM500
 
 for r in $REGEXES
     do
-        python src/main.py --type regexp $r
+        python main.py regexp $r
     done
 
 for (( i=0; i < 5; i++ ))
 do
-    python src/main.py --type graph ${GRAPHS[i]}
+    python main.py graph ${GRAPHS[i]}
     for r in $REGEXES
     do
-        python src/main.py ${GRAPHS[i]} $r
+        python main.py graph-regexp ${GRAPHS[i]} $r
     done
 done
 

@@ -5,12 +5,27 @@ import main
 
 
 def test_cyk():
-    cfg = main.scan_grammar("tests/grammar0.txt")
-    cfg_in_cfn = main.to_cfn(cfg)
+    cfg = main.scan_cfg("tests/grammar0.txt")
+    cfg_in_cnf = main.to_cnf(cfg)
     print("\ngrammar0.txt:")
-    print("'5 5 5 5 5 5' —", main.cyk(cfg_in_cfn, "5 5 5 5 5 5"))
-    print("'55' —", main.cyk(cfg_in_cfn, "55"))
-    print("' ' —", main.cyk(cfg_in_cfn, " "))
+    assert main.cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not main.cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert main.cyk(cfg_in_cnf, "5 4 4 5")
+    assert not main.cyk(cfg_in_cnf, "55")
+    assert main.cyk(cfg_in_cnf, " ")
+
+
+def test_hellings():
+    graph = Graph()
+    graph.scan("tests/graph2.txt")
+    cfg = main.scan_cfg("tests/grammar0.txt")
+    cfg_in_crf = main.to_crf(cfg)
+    print("\ngraph2.txt", "grammar0.txt:")
+    print(main.hellings_algo(graph, cfg_in_crf))
+
+    graph.scan("tests/graph3.txt")
+    print("\ngraph3.txt", "grammar0.txt:")
+    assert not main.hellings_algo(graph, cfg_in_crf)
 
 
 def test_graph_inter():
@@ -18,26 +33,26 @@ def test_graph_inter():
     automaton = Graph()
     res = Graph()
 
-    print("\n\ngraph0.txt", "auto0.txt:")
+    print("\n\ngraph0.txt", "reg0.txt:")
     graph.scan("tests/graph0.txt")
-    automaton.scan_regexp("tests/auto0.txt")
+    automaton.scan_regexp("tests/reg0.txt")
     res.intersection(graph, automaton)
     assert graph.label_boolM["he11o"] == res.label_boolM["he11o"]
     assert res.transitive_closure_adjM() == Matrix.dense(INT8, 3, 3).full(1)
     res.print_inter()
     print()
 
-    print("graph1.txt", "auto1.txt:")
+    print("graph1.txt", "reg1.txt:")
     graph.scan("tests/graph1.txt")
-    automaton.scan_regexp("tests/auto1.txt")
+    automaton.scan_regexp("tests/reg1.txt")
     res.intersection(graph, automaton)
     assert res.size == 10000
     res.print_inter()
     print()
 
-    print("graph0.txt", "auto1.txt:")
+    print("graph0.txt", "reg1.txt:")
     graph.scan("tests/graph0.txt")
-    automaton.scan_regexp("tests/auto1.txt")
+    automaton.scan_regexp("tests/reg1.txt")
     res.intersection(graph, automaton)
     assert not res.label_boolM
     res.print_inter()
