@@ -1,33 +1,77 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
 from pygraphblas import *
+from classes import Graph
 import main
 
 
-def test_graph_inter():
-    graph = main.Graph()
-    automaton = main.Graph()
-    res = main.Graph()
+def test_cyk():
+    cfg = main.scan_cfg("tests/grammar0.txt")
+    cfg_in_cnf = main.to_cnf(cfg)
+    print("\ngrammar0.txt:")
+    assert main.cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not main.cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert main.cyk(cfg_in_cnf, "4 4 5")
+    assert not main.cyk(cfg_in_cnf, "55")
+    assert main.cyk(cfg_in_cnf, " ")
 
-    print("\n\ngraph0.txt", "auto0.txt:")
+    cfg = main.scan_cfg("tests/grammar1.txt")
+    cfg_in_cnf = main.to_cnf(cfg)
+    print("\ngrammar1.txt:")
+    assert main.cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not main.cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert not main.cyk(cfg_in_cnf, "4 4 5")
+    assert not main.cyk(cfg_in_cnf, "55")
+    assert not main.cyk(cfg_in_cnf, " ")
+
+
+def test_hellings():
+    graph = Graph()
+    graph.scan("tests/graph2.txt")
+    cfg = main.scan_cfg("tests/grammar0.txt")
+    cfg_in_crf = main.to_crf(cfg)
+    cfg_in_cnf = main.to_cnf(cfg)
+    print("\ngraph2.txt", "grammar0.txt:")
+    res = main.hellings_algo(graph, cfg_in_crf)
+    print("CRF:\n", res)
+    assert res.select("==", 1).nvals == 4
+    res = main.hellings_algo(graph, cfg_in_cnf)
+    print("CNF:\n", res)
+    assert res.select("==", 1).nvals == 6
+
+    graph.scan("tests/graph_empty.txt")
+    assert not main.hellings_algo(graph, cfg_in_crf)
+
+    graph.scan("tests/graph_loop.txt")
+    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 1
+
     graph.scan("tests/graph0.txt")
-    automaton.scan_regexp("tests/auto0.txt")
+    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 0
+
+
+def test_graph_inter():
+    graph = Graph()
+    automaton = Graph()
+    res = Graph()
+
+    print("\n\ngraph0.txt", "reg0.txt:")
+    graph.scan("tests/graph0.txt")
+    automaton.scan_regexp("tests/reg0.txt")
     res.intersection(graph, automaton)
     assert graph.label_boolM["he11o"] == res.label_boolM["he11o"]
     assert res.transitive_closure_adjM() == Matrix.dense(INT8, 3, 3).full(1)
     res.print_inter()
     print()
 
-    print("graph1.txt", "auto1.txt:")
+    print("graph1.txt", "reg1.txt:")
     graph.scan("tests/graph1.txt")
-    automaton.scan_regexp("tests/auto1.txt")
+    automaton.scan_regexp("tests/reg1.txt")
     res.intersection(graph, automaton)
     assert res.size == 10000
     res.print_inter()
     print()
 
-    print("graph0.txt", "auto1.txt:")
     graph.scan("tests/graph0.txt")
-    automaton.scan_regexp("tests/auto1.txt")
+    automaton.scan_regexp("tests/reg1.txt")
     res.intersection(graph, automaton)
     assert not res.label_boolM
     res.print_inter()

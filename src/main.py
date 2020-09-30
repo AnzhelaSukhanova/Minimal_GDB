@@ -1,201 +1,153 @@
-from pyformlang.regular_expression import Regex
-from pygraphblas import *
-import timeit
 import argparse
-from statistics import fmean, variance
+from pyformlang.cfg import CFG, Epsilon, Production, Variable, Terminal
+from pygraphblas import *
+import check_time
+import tools
+from classes import Graph
 
 
-class Graph:
-    def __init__(self):
-        self.label_boolM = {}
-        self.size = 0
-        self.start_states = []
-        self.final_states = []
+def scan_cfg(file_name):
+    f = open(file_name, 'r')
+    productions = []
+    for line in f:
+        read_prod = line.split()
+        productions.append(read_prod[0] + " -> " + " ".join(read_prod[1:]))
+    f.close()
+    cfg = CFG.from_text("\n".join(productions))
+    return cfg
 
-    def scan(self, file_name):
-        self.__init__()
-        f = open(file_name, 'r')
-        for line in f:
-            i, w, j = line.split(" ")
-            self.size = max(max(int(i), int(j)) + 1, self.size)
-        f.close()
-        f = open(file_name, 'r')
-        for line in f:
-            i, w, j = line.split(" ")
-            i = int(i)
-            j = int(j)
-            if w in self.label_boolM:
-                self.label_boolM[w][i, j] = 1
-            else:
-                bool_M = Matrix.sparse(BOOL, self.size, self.size)
-                bool_M[i, j] = 1
-                self.label_boolM[w] = bool_M
-        f.close()
-        for i in range(self.size):
-            self.start_states.append(i)
-            self.final_states.append(i)
-        return self
 
-    def scan_regexp(self, file_name):
-        self.__init__()
-        f = open(file_name, 'r')
-        automaton = Regex(f.read().rstrip()).to_epsilon_nfa()\
-            .to_deterministic().minimize()
-        f.close()
-        states = {}
-        i = 0
-        for state in automaton._states:
-            if state not in states:
-                states[state] = i
-                i = i + 1
-        self.size = i
-        for i in automaton._states:
-            for symbol in automaton._input_symbols:
-                in_states = automaton._transition_function(i, symbol)
-                for j in in_states:
-                    if symbol in self.label_boolM:
-                        self.label_boolM[symbol][states[i], states[j]] = 1
-                    else:
-                        bool_M = Matrix.sparse(BOOL, self.size, self.size)
-                        bool_M[states[i], states[j]] = 1
-                        self.label_boolM[symbol] = bool_M
-        self.start_states.append(states[automaton.start_state])
-        for state in automaton._final_states:
-            self.final_states.append(states[state])
-        return self
-
-    def intersection(self, fst, snd):
-        self.__init__()
-        for label in fst.label_boolM:
-            if label in snd.label_boolM:
-                self.label_boolM[label] = \
-                    fst.label_boolM[label].kronecker(snd.label_boolM[label])
-        self.size = fst.size * snd.size
-        for i in fst.start_states:
-            for j in snd.start_states:
-                self.start_states.append(i * fst.size + j)
-        for i in fst.final_states:
-            for j in snd.final_states:
-                self.final_states.append(i * fst.size + j)
-        return self
-
-    def transitive_closure_adjM(self):
-        res = Matrix.sparse(BOOL, self.size, self.size)
-        for label in self.label_boolM:
-            res = res | self.label_boolM[label]
-        adjM = res.dup()
-        for i in range(self.size):
-            last_nvals = res.nvals
-            with semiring.LOR_LAND_BOOL:
-                res += adjM @ res
-            if res.nvals == last_nvals:
-                break
+def to_cnf(cfg):
+    if cfg.generate_epsilon():
+        cfg = cfg.to_normal_form()
+        new_start_symbol = Variable(cfg.start_symbol.value + "'")
+        cfg.productions.add(Production(new_start_symbol, []))
+        res = CFG(variables=cfg.variables,
+                  terminals=cfg.terminals,
+                  start_symbol=new_start_symbol)
+        res.variables.add(new_start_symbol)
+        for production in cfg.productions:
+            if production.head == cfg.start_symbol:
+                res.productions.add(Production(new_start_symbol, production.body))
+            res.productions.add(production)
         return res
+    else:
+        return cfg.to_normal_form()
 
-    def transitive_closure_squaring(self):
-        res = Matrix.sparse(BOOL, self.size, self.size)
-        for label in self.label_boolM:
-            res += self.label_boolM[label]
-        for i in range(self.size):
-            old_nvals = res.nvals
-            with semiring.LOR_LAND_BOOL:
-                res += res @ res
-            if res.nvals == old_nvals:
-                break
-        return res
 
-    def reachability_from(self, set):
-        res = self.transitive_closure_adjM()
-        for i in range(self.size):
-            if i not in set:
-                res.assign_row(i, Vector.sparse(BOOL, self.size).full(0))
-        return res
+def to_crf(cfg):
+    return cfg.to_normal_form()
 
-    def reachability_from_to(self, set_from, set_to):
-        res = self.transitive_closure_adjM()
-        for i in range(self.size):
-            if i not in set_from:
-                res.assign_row(i, Vector.sparse(BOOL, self.size).full(0))
-            if i not in set_to:
-                res.assign_col(i, Vector.sparse(BOOL, self.size).full(0))
-        return res
 
-    def print_inter(self):
-        for label in self.label_boolM:
-            print(label, "—", self.label_boolM[label].nvals)
+def body_fst(production):
+    if production.body:
+        return list(production.body)[0]
+    else:
+        return Epsilon()
+
+
+def cyk(cfg, word):
+    word = word.split()
+    word_size = len(word)
+    if word_size == 0:
+        print("' ' —", cfg.generate_epsilon())
+        return cfg.generate_epsilon()
+    else:
+        var_n = len(cfg.variables)
+        matrix = [[[0 for _ in range(word_size)] for _ in range(word_size)] for _ in range(var_n)]
+        var_i = dict(zip(cfg.variables, range(var_n)))
+        sym_i = tools.indices_of_dup(word)
+        body_i = tools.indices_of_dup(list(map(body_fst, cfg.productions)))
+        for sym in word:
+            terminal = Terminal(sym) if sym != ' ' else Epsilon()
+            if terminal in body_i:
+                for i in sym_i[sym]:
+                    for j in body_i[terminal]:
+                        matrix[var_i[list(cfg.productions)[j].head]][i][i] = 1
+        for m in range(1, word_size):
+            for i in range(word_size - m):
+                j = i + m
+                for var in range(var_n):
+                    for production in cfg.productions:
+                        for k in range(i, j):
+                            if production.head == tools.get_key(var_i, var) and \
+                                    len(production.body) == 2:
+                                matrix[var][i][j] += matrix[var_i[list(production.body)[0]]][i][k] * \
+                                                     matrix[var_i[list(production.body)[1]]][k + 1][j]
+                                if matrix[var][i][j]:
+                                    break
+                        if matrix[var][i][j]:
+                            break
+    print("'", " ".join(word), "' —", bool(matrix[var_i[cfg.start_symbol]][0][word_size - 1]))
+    return bool(matrix[var_i[cfg.start_symbol]][0][word_size - 1])
+
+
+def hellings_algo(graph, cfg):
+    if graph.size == 0:
+        return False
+    else:
+        var_vertices = list()
+        if cfg.generate_epsilon():
+            for i in range(graph.size):
+                var_vertices.append([cfg.start_symbol, i, i])
+        body_i = tools.indices_of_dup(list(map(body_fst, cfg.productions)))
+        for label in graph.label_boolM:
+            terminal = Terminal(label)
+            if terminal in body_i:
+                for k in range(len(body_i[terminal])):
+                    var = list(cfg.productions)[body_i[terminal][k]].head
+                    for i in range(graph.size):
+                        for j in range(graph.size):
+                            if graph.label_boolM[label][i, j]:
+                                var_vertices.append([var, i, j])
+        triple = var_vertices.copy()
+        while triple:
+            var1, v1, v2 = triple.pop()
+            for var2, u1, u2 in var_vertices:
+                if u2 == v1:
+                    for production in cfg.productions:
+                        if list(production.body) == {var2, var1} and (production.head, u1, v2) not in var_vertices:
+                            triple.append((production.head, u1, v2))
+                            var_vertices.append((production.head, u1, v2))
+                elif u1 == v2:
+                    for production in cfg.productions:
+                        if list(production.body) == {var1, var2} and (production.head, v1, u1) not in var_vertices:
+                            triple.append((production.head, v1, u1))
+                            var_vertices.append((production.head, v1, u1))
+        reachability = Matrix.sparse(BOOL, graph.size, graph.size).full(0)
+        for var, i, j in var_vertices:
+            if var == cfg.start_symbol:
+                reachability[i, j] = 1
+        return reachability
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--type', nargs=1,
-        choices=['graph', 'regexp'], required=False)
+        'type', nargs=1,
+        choices=['graph', 'regexp', 'grammar', 'graph-grammar', 'graph-regexp'])
     parser.add_argument(
         'files', nargs='+')
     args = parser.parse_args()
-
-    graph = Graph()
-    if len(args.files) == 2:
-        automaton = Graph()
-        res = Graph()
+    if args.type == ['grammar']:
+        cfg = scan_cfg(args.files[0])
+        cfg_in_cnf = to_cnf(cfg)
+        print("Enter the word you want to check:")
+        word = input()
+        cyk(cfg_in_cnf, word)
+    elif args.type == ['graph-grammar']:
+        graph = Graph()
         graph.scan(args.files[0])
-        automaton.scan_regexp(args.files[1])
-        time_inter = timeit.repeat("res.intersection(automaton, graph)",
-                                   setup="from __main__ import Graph, res, graph, automaton",
-                                   repeat=5,
-                                   number=1)
-        res.intersection(automaton, graph)
-        f = open("time_out.txt", 'a')
-        f.write(str(args.files[0]) + " " + str(args.files[1]) + "\n")
-        average = round(fmean(time_inter), 6)
-        D = round(variance(time_inter), 6)
-        time_inter = [round(t, 6) for t in time_inter]
-        f.write("intersection: " + str(time_inter) + " " +
-                str(average) + " " +
-                str(D) + "\n")
-
-        time_print = timeit.repeat("res.print_inter()",
-                                   setup="from __main__ import Graph, res",
-                                   repeat=5,
-                                   number=1)
-        average = round(fmean(time_print), 6)
-        D = round(variance(time_print), 6)
-        time_print = [round(t, 6) for t in time_print]
-        f.write("time_print: " + str(time_print) + " " +
-                str(average) + " " +
-                str(D) + "\n\n")
-        f.close()
-
-    elif len(args.files) == 1:
-        if args.type[0] == "graph":
-            graph.scan(args.files[0])
-        elif args.type[0] == "regexp":
-            graph.scan_regexp(args.files[0])
-        f = open("time_out.txt", 'a')
-        f.write(str(args.files[0]) + "\n")
-        time_clos_adjM = timeit.repeat("graph.transitive_closure_adjM()",
-                                       setup="from __main__ import Graph, graph",
-                                       repeat=5,
-                                       number=1)
-        res = graph.transitive_closure_adjM()
-        print(res.nvals)
-        average = round(fmean(time_clos_adjM), 6)
-        D = round(variance(time_clos_adjM), 6)
-        time_clos_adjM = [round(t, 6) for t in time_clos_adjM]
-        f.write("transitive_closure_adjM: " + str(time_clos_adjM) + " " +
-                str(average) + " " +
-                str(D) + "\n")
-
-        time_clos_squar = timeit.repeat("graph.transitive_closure_squaring()",
-                                        setup="from __main__ import Graph, graph",
-                                        repeat=5,
-                                        number=1)
-        res = graph.transitive_closure_squaring()
-        print(res.nvals)
-        average = round(fmean(time_clos_squar), 6)
-        D = round(variance(time_clos_squar), 6)
-        time_clos_squar = [round(t, 6) for t in time_clos_squar]
-        f.write("transitive_closure_squaring: " + str(time_clos_squar) + " " +
-                str(average) + " " +
-                str(D) + "\n\n")
-        f.close()
+        cfg = scan_cfg(args.files[1])
+        cfg_in_crf = to_crf(cfg)
+        res = hellings_algo(graph, cfg_in_crf)
+        if res is False:
+            print(res)
+        else:
+            print(res.select("==", 1).nvals)
+    elif args.type == ['graph-regexp']:
+        check_time.inter_time(args)
+    elif args.type == ['graph'] or args.type == ['regexp']:
+        check_time.clos_time(args)
+    else:
+        print("Unsupported request")
