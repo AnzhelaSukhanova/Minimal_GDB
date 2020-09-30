@@ -91,11 +91,12 @@ def hellings_algo(graph, cfg):
         for label in graph.label_boolM:
             terminal = Terminal(label)
             if terminal in body_i:
-                var = list(cfg.productions)[body_i[terminal][0]].head
-                for i in range(graph.size):
-                    for j in range(graph.size):
-                        if graph.label_boolM[label][i, j]:
-                            var_vertices.append([var, i, j])
+                for k in range(len(body_i[terminal])):
+                    var = list(cfg.productions)[body_i[terminal][k]].head
+                    for i in range(graph.size):
+                        for j in range(graph.size):
+                            if graph.label_boolM[label][i, j]:
+                                var_vertices.append([var, i, j])
         triple = var_vertices.copy()
         while triple:
             var1, v1, v2 = triple.pop()
@@ -136,7 +137,7 @@ if __name__ == '__main__':
         graph.scan(args.files[0])
         cfg = scan_cfg(args.files[1])
         cfg_in_crf = to_crf(cfg)
-        print(hellings_algo(graph, cfg_in_crf))
+        print(hellings_algo(graph, cfg_in_crf).select("==", 1).nvals)
     elif args.type == ['graph-regexp']:
         check_time.inter_time(args)
     elif args.type == ['graph'] or args.type == ['regexp']:

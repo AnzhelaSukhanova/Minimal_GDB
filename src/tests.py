@@ -10,9 +10,18 @@ def test_cyk():
     print("\ngrammar0.txt:")
     assert main.cyk(cfg_in_cnf, "5 5 5 5 5 5")
     assert not main.cyk(cfg_in_cnf, "1 2 3 4 5")
-    assert main.cyk(cfg_in_cnf, "5 4 4 5")
+    assert main.cyk(cfg_in_cnf, "4 4 5")
     assert not main.cyk(cfg_in_cnf, "55")
     assert main.cyk(cfg_in_cnf, " ")
+
+    cfg = main.scan_cfg("tests/grammar1.txt")
+    cfg_in_cnf = main.to_cnf(cfg)
+    print("\ngrammar1.txt:")
+    assert main.cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not main.cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert not main.cyk(cfg_in_cnf, "4 4 5")
+    assert not main.cyk(cfg_in_cnf, "55")
+    assert not main.cyk(cfg_in_cnf, " ")
 
 
 def test_hellings():
@@ -22,10 +31,15 @@ def test_hellings():
     cfg_in_crf = main.to_crf(cfg)
     print("\ngraph2.txt", "grammar0.txt:")
     print(main.hellings_algo(graph, cfg_in_crf))
+    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 3
 
     graph.scan("tests/graph3.txt")
     print("\ngraph3.txt", "grammar0.txt:")
     assert not main.hellings_algo(graph, cfg_in_crf)
+
+    graph.scan("tests/graph0.txt")
+    print("\ngraph0.txt", "grammar0.txt:")
+    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 0
 
 
 def test_graph_inter():
