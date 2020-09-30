@@ -84,9 +84,12 @@ def cyk(cfg, word):
 
 def hellings_algo(graph, cfg):
     if graph.size == 0:
-        return cfg.generate_epsilon()
+        return False
     else:
         var_vertices = list()
+        if cfg.generate_epsilon():
+            for i in range(graph.size):
+                var_vertices.append([cfg.start_symbol, i, i])
         body_i = tools.indices_of_dup(list(map(body_fst, cfg.productions)))
         for label in graph.label_boolM:
             terminal = Terminal(label)
@@ -137,7 +140,11 @@ if __name__ == '__main__':
         graph.scan(args.files[0])
         cfg = scan_cfg(args.files[1])
         cfg_in_crf = to_crf(cfg)
-        print(hellings_algo(graph, cfg_in_crf).select("==", 1).nvals)
+        res = hellings_algo(graph, cfg_in_crf)
+        if res is False:
+            print(res)
+        else:
+            print(res.select("==", 1).nvals)
     elif args.type == ['graph-regexp']:
         check_time.inter_time(args)
     elif args.type == ['graph'] or args.type == ['regexp']:

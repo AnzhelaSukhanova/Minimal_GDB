@@ -29,16 +29,22 @@ def test_hellings():
     graph.scan("tests/graph2.txt")
     cfg = main.scan_cfg("tests/grammar0.txt")
     cfg_in_crf = main.to_crf(cfg)
+    cfg_in_cnf = main.to_cnf(cfg)
     print("\ngraph2.txt", "grammar0.txt:")
-    print(main.hellings_algo(graph, cfg_in_crf))
-    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 3
+    res = main.hellings_algo(graph, cfg_in_crf)
+    print("CRF:\n", res)
+    assert res.select("==", 1).nvals == 4
+    res = main.hellings_algo(graph, cfg_in_cnf)
+    print("CNF:\n", res)
+    assert res.select("==", 1).nvals == 6
 
-    graph.scan("tests/graph3.txt")
-    print("\ngraph3.txt", "grammar0.txt:")
+    graph.scan("tests/graph_empty.txt")
     assert not main.hellings_algo(graph, cfg_in_crf)
 
+    graph.scan("tests/graph_loop.txt")
+    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 1
+
     graph.scan("tests/graph0.txt")
-    print("\ngraph0.txt", "grammar0.txt:")
     assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 0
 
 
@@ -64,7 +70,6 @@ def test_graph_inter():
     res.print_inter()
     print()
 
-    print("graph0.txt", "reg1.txt:")
     graph.scan("tests/graph0.txt")
     automaton.scan_regexp("tests/reg1.txt")
     res.intersection(graph, automaton)
