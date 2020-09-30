@@ -1,9 +1,9 @@
 import argparse
 from pyformlang.cfg import CFG, Epsilon, Production, Variable, Terminal
-import check_time
-from collections import defaultdict
-from classes import Graph
 from pygraphblas import *
+import check_time
+import tools
+from classes import Graph
 
 
 def scan_cfg(file_name):
@@ -39,25 +39,11 @@ def to_crf(cfg):
     return cfg.to_normal_form()
 
 
-def indices_of_dup(word):
-    d = defaultdict(list)
-    for index, sym in enumerate(word):
-        d[sym].append(index)
-    return d
-
-
 def body_fst(production):
     if production.body:
         return list(production.body)[0]
     else:
         return Epsilon()
-
-
-def get_key(dict, val):
-    for key, value in dict.items():
-        if val == value:
-            return key
-    print("Key doesn't exist")
 
 
 def cyk(cfg, word):
@@ -70,8 +56,8 @@ def cyk(cfg, word):
         var_n = len(cfg.variables)
         matrix = [[[0 for _ in range(word_size)] for _ in range(word_size)] for _ in range(var_n)]
         var_i = dict(zip(cfg.variables, range(var_n)))
-        sym_i = indices_of_dup(word)
-        body_i = indices_of_dup(list(map(body_fst, cfg.productions)))
+        sym_i = tools.indices_of_dup(word)
+        body_i = tools.indices_of_dup(list(map(body_fst, cfg.productions)))
         for sym in word:
             terminal = Terminal(sym) if sym != ' ' else Epsilon()
             if terminal in body_i:
@@ -84,7 +70,7 @@ def cyk(cfg, word):
                 for var in range(var_n):
                     for production in cfg.productions:
                         for k in range(i, j):
-                            if production.head == get_key(var_i, var) and \
+                            if production.head == tools.get_key(var_i, var) and \
                                     len(production.body) == 2:
                                 matrix[var][i][j] += matrix[var_i[list(production.body)[0]]][i][k] * \
                                                      matrix[var_i[list(production.body)[1]]][k + 1][j]
@@ -101,7 +87,7 @@ def hellings_algo(graph, cfg):
         return cfg.generate_epsilon()
     else:
         var_vertices = list()
-        body_i = indices_of_dup(list(map(body_fst, cfg.productions)))
+        body_i = tools.indices_of_dup(list(map(body_fst, cfg.productions)))
         for label in graph.label_boolM:
             terminal = Terminal(label)
             if terminal in body_i:
