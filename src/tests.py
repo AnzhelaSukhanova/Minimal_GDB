@@ -5,47 +5,47 @@ import main
 
 
 def test_cyk():
-    cfg = main.scan_cfg("tests/grammar0.txt")
-    cfg_in_cnf = main.to_cnf(cfg)
+    cfg = main.grammar.scan_cfg("tests/grammar0.txt")
+    cfg_in_cnf = main.grammar.to_cnf(cfg)
     print("\ngrammar0.txt:")
-    assert main.cyk(cfg_in_cnf, "5 5 5 5 5 5")
-    assert not main.cyk(cfg_in_cnf, "1 2 3 4 5")
-    assert main.cyk(cfg_in_cnf, "4 4 5")
-    assert not main.cyk(cfg_in_cnf, "55")
-    assert main.cyk(cfg_in_cnf, " ")
+    assert main.grammar.cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not main.grammar.cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert main.grammar.cyk(cfg_in_cnf, "4 4 5")
+    assert not main.grammar.cyk(cfg_in_cnf, "55")
+    assert main.grammar.cyk(cfg_in_cnf, " ")
 
-    cfg = main.scan_cfg("tests/grammar1.txt")
-    cfg_in_cnf = main.to_cnf(cfg)
+    cfg = main.grammar.scan_cfg("tests/grammar1.txt")
+    cfg_in_cnf = main.grammar.to_cnf(cfg)
     print("\ngrammar1.txt:")
-    assert main.cyk(cfg_in_cnf, "5 5 5 5 5 5")
-    assert not main.cyk(cfg_in_cnf, "1 2 3 4 5")
-    assert not main.cyk(cfg_in_cnf, "4 4 5")
-    assert not main.cyk(cfg_in_cnf, "55")
-    assert not main.cyk(cfg_in_cnf, " ")
+    assert main.grammar.cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not main.grammar.cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert not main.grammar.cyk(cfg_in_cnf, "4 4 5")
+    assert not main.grammar.cyk(cfg_in_cnf, "55")
+    assert not main.grammar.cyk(cfg_in_cnf, " ")
 
 
 def test_hellings():
     graph = Graph()
     graph.scan("tests/graph2.txt")
-    cfg = main.scan_cfg("tests/grammar0.txt")
-    cfg_in_crf = main.to_crf(cfg)
-    cfg_in_cnf = main.to_cnf(cfg)
+    cfg = main.grammar.scan_cfg("tests/grammar0.txt")
+    cfg_in_crf = main.grammar.to_crf(cfg)
+    cfg_in_cnf = main.grammar.to_cnf(cfg)
     print("\ngraph2.txt", "grammar0.txt:")
-    res = main.hellings_algo(graph, cfg_in_crf)
+    res = main.cfpq_hellings(graph, cfg_in_crf)
     print("CRF:\n", res)
     assert res.select("==", 1).nvals == 4
-    res = main.hellings_algo(graph, cfg_in_cnf)
+    res = main.cfpq_hellings(graph, cfg_in_cnf)
     print("CNF:\n", res)
     assert res.select("==", 1).nvals == 6
 
     graph.scan("tests/graph_empty.txt")
-    assert not main.hellings_algo(graph, cfg_in_crf)
+    assert not main.cfpq_hellings(graph, cfg_in_crf)
 
     graph.scan("tests/graph_loop.txt")
-    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 1
+    assert main.cfpq_hellings(graph, cfg_in_crf).select("==", 1).nvals == 1
 
     graph.scan("tests/graph0.txt")
-    assert main.hellings_algo(graph, cfg_in_crf).select("==", 1).nvals == 0
+    assert main.cfpq_hellings(graph, cfg_in_crf).select("==", 1).nvals == 0
 
 
 def test_graph_inter():
