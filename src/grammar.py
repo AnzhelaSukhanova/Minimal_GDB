@@ -2,6 +2,14 @@ from pyformlang.cfg import CFG, Epsilon, Production, Variable, Terminal
 import tools
 
 
+def pair_in_body(productions):
+    res = []
+    for prod in productions:
+        if len(prod.body) == 2:
+            res.append(prod)
+    return res
+
+
 def scan_cfg(file_name):
     f = open(file_name, 'r')
     productions = []
@@ -35,9 +43,10 @@ def to_crf(cfg):
     return cfg.to_normal_form()
 
 
-def body_fst(production):
+def body_term(production):
     if production.body:
-        return list(production.body)[0]
+        if len(production.body) == 1:
+            return list(production.body)[0]
     else:
         return Epsilon()
 
@@ -53,12 +62,12 @@ def cyk(cfg, word):
         matrix = [[[0 for _ in range(word_size)] for _ in range(word_size)] for _ in range(var_n)]
         var_i = dict(zip(cfg.variables, range(var_n)))
         sym_i = tools.indices_of_dup(word)
-        body_i = tools.indices_of_dup(list(map(body_fst, cfg.productions)))
+        terminal_i = tools.indices_of_dup(list(map(body_term, cfg.productions)))
         for sym in word:
             terminal = Terminal(sym) if sym != ' ' else Epsilon()
-            if terminal in body_i:
+            if terminal in terminal_i:
                 for i in sym_i[sym]:
-                    for j in body_i[terminal]:
+                    for j in terminal_i[terminal]:
                         matrix[var_i[list(cfg.productions)[j].head]][i][i] = 1
         for m in range(1, word_size):
             for i in range(word_size - m):

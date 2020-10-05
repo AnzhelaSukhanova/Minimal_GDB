@@ -1,5 +1,5 @@
 import argparse
-from pyformlang.cfg import Terminal
+from pyformlang.cfg import Terminal, Variable
 from pygraphblas import *
 from classes import Graph
 import check_time
@@ -15,31 +15,33 @@ def cfpq_hellings(graph, cfg):
         if cfg.generate_epsilon():
             for i in range(graph.size):
                 var_vertices.append([cfg.start_symbol, i, i])
-        body_i = tools.indices_of_dup(list(map(grammar.body_fst, cfg.productions)))
+        terminal_i = tools.indices_of_dup(list(map(grammar.body_term, cfg.productions)))
+        terminal_i.pop(None)
         for label in graph.label_boolM:
             terminal = Terminal(label)
-            if terminal in body_i:
-                for k in range(len(body_i[terminal])):
-                    var = list(cfg.productions)[body_i[terminal][k]].head
+            if terminal in terminal_i:
+                for k in range(len(terminal_i[terminal])):
+                    var = list(cfg.productions)[terminal_i[terminal][k]].head
                     for i in range(graph.size):
                         for j in range(graph.size):
-                            if graph.label_boolM[label][i, j]:
+                            if (i, j) in graph.label_boolM[label]:
                                 var_vertices.append([var, i, j])
         triple = var_vertices.copy()
+        prod_var = grammar.pair_in_body(cfg.productions)
         while triple:
             var1, v1, v2 = triple.pop()
             for var2, u1, u2 in var_vertices:
                 if u2 == v1:
-                    for production in cfg.productions:
-                        if list(production.body) == {var2, var1} and (production.head, u1, v2) not in var_vertices:
-                            triple.append((production.head, u1, v2))
-                            var_vertices.append((production.head, u1, v2))
+                    for prod in prod_var:
+                        if list(prod.body) == [var2, var1] and (prod.head, u1, v2) not in var_vertices:
+                            triple.append((prod.head, u1, v2))
+                            var_vertices.append((prod.head, u1, v2))
                 elif u1 == v2:
-                    for production in cfg.productions:
-                        if list(production.body) == {var1, var2} and (production.head, v1, u1) not in var_vertices:
-                            triple.append((production.head, v1, u1))
-                            var_vertices.append((production.head, v1, u1))
-        reachability = Matrix.sparse(BOOL, graph.size, graph.size).full(0)
+                    for prod in prod_var:
+                        if list(prod.body) == [var1, var2] and (prod.head, v1, u1) not in var_vertices:
+                            triple.append((prod.head, v1, u1))
+                            var_vertices.append((prod.head, v1, u1))
+        reachability = Matrix.sparse(BOOL, graph.size, graph.size)
         for var, i, j in var_vertices:
             if var == cfg.start_symbol:
                 reachability[i, j] = 1
@@ -69,7 +71,7 @@ if __name__ == '__main__':
         if res is False:
             print(res)
         else:
-            print(res.select("==", 1).nvals)
+            print(res.nvals)
     elif args.type == ['graph-regexp']:
         check_time.inter_time(args)
     elif args.type == ['graph'] or args.type == ['regexp']:

@@ -9,6 +9,14 @@ class Graph:
         self.start_states = []
         self.final_states = []
 
+    def set(self, key, i, j):
+        if key in self.label_boolM:
+            self.label_boolM[key][i, j] = 1
+        else:
+            bool_M = Matrix.sparse(BOOL, self.size, self.size)
+            bool_M[i, j] = 1
+            self.label_boolM[key] = bool_M
+
     def scan(self, file_name):
         self.__init__()
         f = open(file_name, 'r')
@@ -20,14 +28,7 @@ class Graph:
             f = open(file_name, 'r')
             for line in f:
                 i, w, j = line.split(" ")
-                i = int(i)
-                j = int(j)
-                if w in self.label_boolM:
-                    self.label_boolM[w][i, j] = 1
-                else:
-                    bool_M = Matrix.sparse(BOOL, self.size, self.size).full(0)
-                    bool_M[i, j] = 1
-                    self.label_boolM[w] = bool_M
+                self.set(w, int(i), int(j))
             f.close()
             for i in range(self.size):
                 self.start_states.append(i)
@@ -46,12 +47,7 @@ class Graph:
             for symbol in automaton._input_symbols:
                 in_states = automaton._transition_function(i, symbol)
                 for j in in_states:
-                    if symbol in self.label_boolM:
-                        self.label_boolM[symbol][states[i], states[j]] = 1
-                    else:
-                        bool_M = Matrix.sparse(BOOL, self.size, self.size)
-                        bool_M[states[i], states[j]] = 1
-                        self.label_boolM[symbol] = bool_M
+                    self.set(symbol, states[i], states[j])
         self.start_states.append(states[automaton.start_state])
         for state in automaton._final_states:
             self.final_states.append(states[state])
@@ -90,10 +86,10 @@ class Graph:
         for label in self.label_boolM:
             res += self.label_boolM[label]
         for i in range(self.size):
-            old_nvals = res.nvals
+            last_nvals = res.nvals
             with semiring.LOR_LAND_BOOL:
                 res += res @ res
-            if res.nvals == old_nvals:
+            if res.nvals == last_nvals:
                 break
         return res
 
@@ -101,16 +97,16 @@ class Graph:
         res = self.transitive_closure_adjM()
         for i in range(self.size):
             if i not in set:
-                res.assign_row(i, Vector.sparse(BOOL, self.size).full(0))
+                res.assign_row(i, Vector.sparse(BOOL, self.size).full(None))
         return res
 
     def reachability_from_to(self, set_from, set_to):
         res = self.transitive_closure_adjM()
         for i in range(self.size):
             if i not in set_from:
-                res.assign_row(i, Vector.sparse(BOOL, self.size).full(0))
+                res.assign_row(i, Vector.sparse(BOOL, self.size).full(None))
             if i not in set_to:
-                res.assign_col(i, Vector.sparse(BOOL, self.size).full(0))
+                res.assign_col(i, Vector.sparse(BOOL, self.size).full(None))
         return res
 
     def print_inter(self):

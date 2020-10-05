@@ -29,14 +29,8 @@ def test_hellings():
     graph.scan("tests/graph2.txt")
     cfg = main.grammar.scan_cfg("tests/grammar0.txt")
     cfg_in_crf = main.grammar.to_crf(cfg)
-    cfg_in_cnf = main.grammar.to_cnf(cfg)
-    print("\ngraph2.txt", "grammar0.txt:")
     res = main.cfpq_hellings(graph, cfg_in_crf)
-    print("CRF:\n", res)
-    assert res.select("==", 1).nvals == 4
-    res = main.cfpq_hellings(graph, cfg_in_cnf)
-    print("CNF:\n", res)
-    assert res.select("==", 1).nvals == 6
+    assert res == Matrix.dense(BOOL, 3, 3).full(1)
 
     graph.scan("tests/graph_empty.txt")
     assert not main.cfpq_hellings(graph, cfg_in_crf)
