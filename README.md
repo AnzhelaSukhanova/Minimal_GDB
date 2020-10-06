@@ -1,6 +1,6 @@
 ## Minimal graph database
-**master:**⋅⋅[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=master)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB)  
-**dev:**⋅⋅[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=dev)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB)  
+**master:**	[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=master)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB)  
+**dev:**	[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=dev)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB)  
 SPbU, fall semester 2020, formal language course
 
 You will need the pygraphblas and pyformlang to work with this project. They can be install with:  
