@@ -55,7 +55,6 @@ def cyk(cfg, word):
     word = word.split()
     word_size = len(word)
     if word_size == 0:
-        print("' ' —", cfg.generate_epsilon())
         return cfg.generate_epsilon()
     else:
         var_n = len(cfg.variables)
@@ -83,5 +82,4 @@ def cyk(cfg, word):
                                     break
                         if matrix[var][i][j]:
                             break
-    print("'", " ".join(word), "' —", bool(matrix[var_i[cfg.start_symbol]][0][word_size - 1]))
     return bool(matrix[var_i[cfg.start_symbol]][0][word_size - 1])

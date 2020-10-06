@@ -17,6 +17,15 @@ class Graph:
             bool_M[i, j] = 1
             self.label_boolM[key] = bool_M
 
+    def copy(self):
+        copy = Graph()
+        copy.size = self.size
+        for label in self.label_boolM:
+            copy.label_boolM[label] = self.label_boolM[label].dup()
+        copy.start_states = self.start_states.copy()
+        copy.final_states = self.final_states.copy()
+        return copy
+
     def scan(self, file_name):
         self.__init__()
         f = open(file_name, 'r')
