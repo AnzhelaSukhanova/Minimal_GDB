@@ -8,8 +8,9 @@ Or you can install the pygraphblas by following the instuctions from https://git
 ### Tests
 There are some simple tests to review:
 1) the functionality of the pygraphblas and pyformlang libraries;
-2) the implementation of graph intersection using tensor product.  
-3) the implementation of CYK and CFPQ.
+2) the implementation of graph intersection using tensor product;
+3) the implementation of CYK;
+4) three implementations of CFPQ (by Hellings Algorithm, boolean matrix multiplication and tensor product).
 
 They can be run with the command:  
 `pytest -s src/tests.py`.  
@@ -18,7 +19,7 @@ To see the output of the graph intersection function (in the form of a pair "lab
 `python src/main.py graph-regexp <filename1> <filename2>`.  
 Also there are implementations of reachability requests:
 `python src/main.py regexp <filename>` or `python src/main.py graph <filename>`  
-Moreover, you can use `python src/main.py grammar <filename>` (it will require word input) to test CYK or `python src/main.py graph-grammar <filename1> <filename2>` to test CFPQ.
+Moreover, you can use `python src/main.py grammar <filename>` (it will require word input) to test CYK or `python src/main.py graph-grammar <filename1> <filename2>` to test three types of CFPQ.
 
 ### Time measurements
 To get some test data (files with graphs and regular expressions) use:  

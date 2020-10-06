@@ -1,4 +1,5 @@
 from pyformlang.cfg import CFG, Epsilon, Production, Variable, Terminal
+from classes import Graph
 import tools
 
 
@@ -83,3 +84,26 @@ def cyk(cfg, word):
                         if matrix[var][i][j]:
                             break
     return bool(matrix[var_i[cfg.start_symbol]][0][word_size - 1])
+
+
+def build_rec_automaton(cfg):
+    rec_auto = Graph()
+    size = 0
+    heads = {}
+    for prod in cfg.productions:
+        length = len(prod.body)
+        if length > 0:
+            size += length + 1
+    rec_auto.size = size
+    ver = 0
+    for prod in cfg.productions:
+        length = len(prod.body)
+        if length > 0:
+            rec_auto.start_states.append(ver)
+            for i in range(length):
+                rec_auto.set(list(prod.body)[i].value, ver, ver + 1)
+                ver += 1
+            rec_auto.final_states.append(ver)
+            heads[ver - length, ver] = prod.head.value
+            ver += 1
+    return rec_auto, heads

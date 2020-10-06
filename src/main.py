@@ -54,64 +54,45 @@ def cfpq_MxM(graph, cfg):
     else:
         res = Graph()
         res.size = graph.size
-        res.label_boolM[cfg.start_symbol.value] = Matrix.sparse(BOOL, res.size, res.size)
+        res.label_boolM[cfg.start_symbol] = Matrix.sparse(BOOL, res.size, res.size)
         if cfg.generate_epsilon():
-            res.label_boolM[cfg.start_symbol] = Matrix.identity(BOOL, graph.size)
+            res.label_boolM[cfg.start_symbol] += Matrix.identity(BOOL, graph.size)
         terminal_i = tools.indices_of_dup(list(map(grammar.body_term, cfg.productions)))
         terminal_i.pop(None)
-        productions = []
         for label in graph.label_boolM:
             terminal = Terminal(label)
             if terminal in terminal_i:
                 for k in range(len(terminal_i[terminal])):
                     var = list(cfg.productions)[terminal_i[terminal][k]].head
-                    productions.append( list(cfg.productions)[terminal_i[terminal][k]])
                     if var in res.label_boolM:
                         res.label_boolM[var] += graph.label_boolM[label]
                     else:
                         res.label_boolM[var] = graph.label_boolM[label]
-        productions = grammar.pair_in_body(productions)
+        prod_var = grammar.pair_in_body(cfg.productions)
         res_changes = True
         while res_changes:
             res_changes = False
-            for prod in productions:
-                last_nvals = res.label_boolM[prod.head].nvals
-                with semiring.LOR_LAND_BOOL:
-                    res.label_boolM[prod.head] += res.label_boolM[list(prod.body)[0]] @ \
-                                                  res.label_boolM[list(prod.body)[1]]
-                if res.label_boolM[prod.head].nvals != last_nvals:
-                    res_changes = True
+            for prod in prod_var:
+                if (prod.head in res.label_boolM) and \
+                        (list(prod.body)[0] in res.label_boolM) and \
+                        (list(prod.body)[1] in res.label_boolM):
+                    last_nvals = res.label_boolM[prod.head].nvals
+                    with semiring.LOR_LAND_BOOL:
+                        res.label_boolM[prod.head] += res.label_boolM[list(prod.body)[0]] @ \
+                                                      res.label_boolM[list(prod.body)[1]]
+                    if res.label_boolM[prod.head].nvals != last_nvals:
+                        res_changes = True
         return res.label_boolM[cfg.start_symbol]
 
 
-def cfpq_tensor(graph, cfg):
+def cfpq_tensor(graph, cfg, rec_auto, heads):
     if graph.size == 0:
         return False
     else:
         res = graph.copy()
         res.label_boolM[cfg.start_symbol.value] = Matrix.sparse(BOOL, res.size, res.size)
-        rec_auto = Graph()
-        size = 0
-        heads = {}
-        for prod in cfg.productions:
-            length = len(prod.body)
-            if length > 0:
-                size += length + 1
-        rec_auto.size = size
-        ver = 0
-        for prod in cfg.productions:
-            length = len(prod.body)
-            if length > 0:
-                rec_auto.start_states.append(ver)
-                for i in range(length):
-                    rec_auto.set(list(prod.body)[i].value, ver, ver + 1)
-                    ver += 1
-                rec_auto.final_states.append(ver)
-                heads[ver - length, ver] = prod.head.value
-                ver += 1
-            else:
-                S = cfg.start_symbol.value
-                res.label_boolM[cfg.start_symbol.value] += Matrix.identity(BOOL, res.size)
+        if cfg.generate_epsilon():
+            res.label_boolM[cfg.start_symbol.value] += Matrix.identity(BOOL, res.size)
         res_changes = True
         inter = Graph()
         tCl = inter.intersection(res, rec_auto).transitive_closure_squaring()
@@ -151,18 +132,19 @@ if __name__ == '__main__':
         graph = Graph()
         graph.scan(args.files[0])
         cfg = grammar.scan_cfg(args.files[1])
-        res = cfpq_tensor(graph, cfg)
+        rec_auto, heads = grammar.build_rec_automaton(cfg)
+        res = cfpq_tensor(graph, cfg, rec_auto, heads)
         if res is False:
             print(res)
         else:
             print(res.nvals)
-        cfg_in_crf = grammar.to_crf(cfg)
-        res = cfpq_hellings(graph, cfg_in_crf)
+        cfg_in_cnf = grammar.to_cnf(cfg)
+        res = cfpq_hellings(graph, cfg_in_cnf)
         if res is False:
             print(res)
         else:
             print(res.nvals)
-        res = cfpq_MxM(graph, cfg_in_crf)
+        res = cfpq_MxM(graph, cfg_in_cnf)
         if res is False:
             print(res)
         else:
