@@ -22,7 +22,7 @@ def test_cfpq():
     mul = main.cfpq_MxM(graph, cfg_in_cnf)
     rec_auto, heads = main.grammar.build_rec_automaton(cfg)
     tensor = main.cfpq_tensor(graph, cfg, rec_auto, heads)
-    assert hell == Matrix.dense(BOOL, 3, 3).full(1)
+    assert hell.iseq(Matrix.sparse(BOOL, 3, 3).full(True))
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
@@ -77,7 +77,7 @@ def test_graph_inter():
     automaton.scan_regexp("tests/reg0.txt")
     res.intersection(graph, automaton)
     assert graph.label_boolM["he11o"] == res.label_boolM["he11o"]
-    #assert res.transitive_closure_adjM().iseq(Matrix.dense(INT8, 3, 3).full(1))
+    assert res.transitive_closure_adjM().iseq(Matrix.sparse(BOOL, 3, 3).full(True))
 
     graph.scan("tests/graph1.txt")
     automaton.scan_regexp("tests/reg1.txt")
