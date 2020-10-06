@@ -4,10 +4,48 @@ from classes import Graph
 import main
 
 
+def test_cfpq():
+    graph = Graph()
+    graph.scan("tests/graph2.txt")
+    cfg = main.grammar.scan_cfg("tests/grammar1.txt")
+    cfg_in_crf = main.grammar.to_crf(cfg)
+    hell = main.cfpq_hellings(graph, cfg_in_crf)
+    mul = main.cfpq_MxM(graph, cfg_in_crf)
+    tensor = main.cfpq_tensor(graph, cfg)
+    assert hell == mul == tensor
+    cfg = main.grammar.scan_cfg("tests/grammar0.txt")
+    cfg_in_crf = main.grammar.to_crf(cfg)
+    hell = main.cfpq_hellings(graph, cfg_in_crf)
+    mul = main.cfpq_MxM(graph, cfg_in_crf)
+    tensor = main.cfpq_tensor(graph, cfg)
+    assert hell == Matrix.dense(BOOL, 3, 3).full(1)
+    assert hell == mul == tensor
+
+    graph.scan("tests/graph_empty.txt")
+    hell = main.cfpq_hellings(graph, cfg_in_crf)
+    mul = main.cfpq_MxM(graph, cfg_in_crf)
+    tensor = main.cfpq_tensor(graph, cfg)
+    assert not hell
+    assert hell == mul == tensor
+
+    graph.scan("tests/graph_loop.txt")
+    hell = main.cfpq_hellings(graph, cfg_in_crf)
+    mul = main.cfpq_MxM(graph, cfg_in_crf)
+    tensor = main.cfpq_tensor(graph, cfg)
+    assert hell.nvals == 1
+    assert hell == mul == tensor
+
+    graph.scan("tests/graph0.txt")
+    hell = main.cfpq_hellings(graph, cfg_in_crf)
+    mul = main.cfpq_MxM(graph, cfg_in_crf)
+    tensor = main.cfpq_tensor(graph, cfg)
+    assert hell.nvals == 0
+    assert hell == mul == tensor
+
+
 def test_cyk():
     cfg = main.grammar.scan_cfg("tests/grammar0.txt")
     cfg_in_cnf = main.grammar.to_cnf(cfg)
-    print("\ngrammar0.txt:")
     assert main.grammar.cyk(cfg_in_cnf, "5 5 5 5 5 5")
     assert not main.grammar.cyk(cfg_in_cnf, "1 2 3 4 5")
     assert main.grammar.cyk(cfg_in_cnf, "4 4 5")
@@ -16,7 +54,6 @@ def test_cyk():
 
     cfg = main.grammar.scan_cfg("tests/grammar1.txt")
     cfg_in_cnf = main.grammar.to_cnf(cfg)
-    print("\ngrammar1.txt:")
     assert main.grammar.cyk(cfg_in_cnf, "5 5 5 5 5 5")
     assert not main.grammar.cyk(cfg_in_cnf, "1 2 3 4 5")
     assert not main.grammar.cyk(cfg_in_cnf, "4 4 5")
@@ -24,52 +61,26 @@ def test_cyk():
     assert not main.grammar.cyk(cfg_in_cnf, " ")
 
 
-def test_hellings():
-    graph = Graph()
-    graph.scan("tests/graph2.txt")
-    cfg = main.grammar.scan_cfg("tests/grammar0.txt")
-    cfg_in_crf = main.grammar.to_crf(cfg)
-    res = main.cfpq_hellings(graph, cfg_in_crf)
-    assert res == Matrix.dense(BOOL, 3, 3).full(1)
-
-    graph.scan("tests/graph_empty.txt")
-    assert not main.cfpq_hellings(graph, cfg_in_crf)
-
-    graph.scan("tests/graph_loop.txt")
-    assert main.cfpq_hellings(graph, cfg_in_crf).select("==", 1).nvals == 1
-
-    graph.scan("tests/graph0.txt")
-    assert main.cfpq_hellings(graph, cfg_in_crf).select("==", 1).nvals == 0
-
-
 def test_graph_inter():
     graph = Graph()
     automaton = Graph()
     res = Graph()
 
-    print("\n\ngraph0.txt", "reg0.txt:")
     graph.scan("tests/graph0.txt")
     automaton.scan_regexp("tests/reg0.txt")
     res.intersection(graph, automaton)
     assert graph.label_boolM["he11o"] == res.label_boolM["he11o"]
     assert res.transitive_closure_adjM() == Matrix.dense(INT8, 3, 3).full(1)
-    res.print_inter()
-    print()
 
-    print("graph1.txt", "reg1.txt:")
     graph.scan("tests/graph1.txt")
     automaton.scan_regexp("tests/reg1.txt")
     res.intersection(graph, automaton)
     assert res.size == 10000
-    res.print_inter()
-    print()
 
     graph.scan("tests/graph0.txt")
     automaton.scan_regexp("tests/reg1.txt")
     res.intersection(graph, automaton)
     assert not res.label_boolM
-    res.print_inter()
-    print()
 
 
 def test_mxm():
