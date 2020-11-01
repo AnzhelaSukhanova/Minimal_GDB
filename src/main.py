@@ -115,7 +115,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'type', nargs=1,
-        choices=['clos_time', 'intersection', 'cyk', 'cfpq'])
+        choices=['clos_graph', 'clos_regexp', 'intersection', 'cyk', 'cfpq'])
     parser.add_argument(
         'files', nargs='+')
     args = parser.parse_args()
