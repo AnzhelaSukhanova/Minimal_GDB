@@ -115,17 +115,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'type', nargs=1,
-        choices=['graph', 'regexp', 'grammar', 'graph-grammar', 'graph-regexp'])
+        choices=['clos_time', 'intersection', 'cyk', 'cfpq'])
     parser.add_argument(
         'files', nargs='+')
     args = parser.parse_args()
-    if args.type == ['grammar']:
+    if args.type == ['cyk']:
         cfg = grammar.scan_cfg(args.files[0])
         cfg_in_cnf = grammar.to_cnf(cfg)
         print("Enter the word you want to check:")
         word = input()
         print("'", word, "' —", grammar.cyk(cfg_in_cnf, word))
-    elif args.type == ['graph-grammar']:
+    elif args.type == ['cfpq']:
         graph = Graph()
         graph.scan(args.files[0])
         cfg = grammar.scan_cfg(args.files[1])
@@ -146,9 +146,9 @@ if __name__ == '__main__':
             print(res)
         else:
             print(res.nvals)
-    elif args.type == ['graph-regexp']:
+    elif args.type == ['intersection']:
         check_time.inter_time(args)
-    elif args.type == ['graph'] or args.type == ['regexp']:
+    elif args.type == ['clos_graph'] or args.type == ['clos_regexp']:
         check_time.clos_time(args)
     else:
         print("Unsupported request")
