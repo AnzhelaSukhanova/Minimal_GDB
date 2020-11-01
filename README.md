@@ -20,10 +20,10 @@ They can be run with the command:
 `pytest -s src/tests.py`.  
 
 To see the output of the graph intersection function (in the form of a pair "label — number of edges marked by it") use (it give you the running times too):  
-`python src/main.py graph-regexp <filename1> <filename2>`.  
+`python src/main.py intersection <graph_file> <regexp_file>`.  
 Also there are implementations of reachability requests:
-`python src/main.py regexp <filename>` or `python src/main.py graph <filename>`  
-Moreover, you can use `python src/main.py grammar <filename>` (it will require word input) to test CYK or `python src/main.py graph-grammar <filename1> <filename2>` to test three types of CFPQ.
+`python src/main.py clos_regexp <regexp_file>` or `python src/main.py clos_graph <graph_file>`  
+You can use `python src/main.py cyk <grammar_file>` (it will require word input) to test CYK or `python src/main.py cfpq <graph_file> <grammar_file>` to test three types of CFPQ.
 
 ### Time measurements
 To get some test data (files with graphs and regular expressions) use:  
