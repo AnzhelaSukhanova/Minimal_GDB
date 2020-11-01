@@ -30,13 +30,13 @@ class Graph:
         self.__init__()
         f = open(file_name, 'r')
         for line in f:
-            i, w, j = line.split()
+            i, w, j = line.rstrip().split()
             self.size = max(max(int(i), int(j)) + 1, self.size)
         f.close()
         if (self.size != 0):
             f = open(file_name, 'r')
             for line in f:
-                i, w, j = line.split(" ")
+                i, w, j = line.rstrip().split()
                 self.set(w, int(i), int(j))
             f.close()
             for i in range(self.size):
