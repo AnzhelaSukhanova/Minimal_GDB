@@ -24,17 +24,16 @@ def cfpq_time(args):
                 graph = Graph()
                 graph.scan(graph)
                 cfg = grammar.scan_cfg(gram)
-                cfg_in_cnf = grammar.to_cnf(cfg)
                 cfg_in_crf = grammar.to_crf(cfg)
                 output = "   "
-                time_hel = timeit.repeat("cfpq_hellings(graph, cfg_in_cnf)",
+                time_hel = timeit.repeat("cfpq_hellings(graph, cfg_in_crf)",
                                          setup="from src.main import cfpq_hellings",
                                          repeat=5,
                                          number=1,
                                          globals=locals())
                 output += "Hel: " + str(round(fmean(time_hel), 6)) + "   "
 
-                time_MxM = timeit.repeat("cfpq_MxM(graph, cfg_in_cnf)",
+                time_MxM = timeit.repeat("cfpq_MxM(graph, cfg_in_crf)",
                                          setup="from src.main import cfpq_MxM",
                                          repeat=5,
                                          number=1,
