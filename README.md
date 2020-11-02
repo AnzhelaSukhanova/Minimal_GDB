@@ -26,7 +26,5 @@ Also there are implementations of reachability requests:
 You can use `python src/main.py cyk <grammar_file>` (it will require word input) to test CYK or `python src/main.py cfpq <graph_file> <grammar_file>` to test three types of CFPQ.
 
 ### Time measurements
-To get some test data (files with graphs and regular expressions) use:  
-`gdown https://drive.google.com/uc?id=158g01o2rpdq5eL3Ari8e5SPbbeZTJspr`.  
-Only then can you run time.sh (`bash time.sh`) that measures the running times of the transitive closure and intersection implementations and the output of the latter. The measurement results will be in the file time_out.txt. The result of a particular measurement is a list of times for five runs, their average and variance. Read more about it in reports/report1.pdf.
-
+Read about time measurements of transitive closure and intersection implementations and the output of the latter in reports/report1.pdf.  
+Read about time comparison of different CFPQ-algorithms in reports/report2.pdf.
