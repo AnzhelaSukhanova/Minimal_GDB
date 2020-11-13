@@ -114,8 +114,8 @@ def cfpq_tensor(graph, cfg, rec_auto, heads):
 def syn_analyzer(syntax, prog):
     f = open(prog, 'r')
     is_correct = 1
-    need_cyk = 1
     for line in f:
+        need_cyk = 1
         line = line.rstrip()
         while line.endswith(('\\')):
             line = line[:len(line) - 1] + " " + f.readline()

@@ -35,7 +35,7 @@ Read about time comparison of different CFPQ-algorithms in reports/report2.pdf.
 
 
 ### GDB query language syntax
-Pay attention to the fact that the symbols and names of the graphs and databases can be written with **{a-z, 0-9, ., /}** (not just "/" or ".") without spaces. Do not forget to put spaces before words and служебными symbols. Every next statement starts on a new line and can be separated with `\`.  
+Pay attention to the fact that the symbols and names of the graphs and databases can be written with **{a-z, 0-9, ., /}** (not just "/" or ".") without spaces. Do not forget to put spaces before words and around service symbols. Every next statement starts on a new line and can be separated with `\`.  
 First connect to the database:
 `connect <db_name>`  
 The edges or their number can be extracted from gdb by:
