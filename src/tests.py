@@ -10,6 +10,8 @@ def test_sa():
 
     assert syn_analyzer(cfg_in_cnf, "tests/prog0")
     assert syn_analyzer(cfg_in_cnf, "tests/prog1")
+    assert syn_analyzer(cfg_in_cnf, "tests/prog2")
+    assert syn_analyzer(cfg_in_cnf, "tests/empty")
 
 
 def test_cfpq():
@@ -34,7 +36,7 @@ def test_cfpq():
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
-    graph.scan("tests/graph_empty.txt")
+    graph.scan("tests/empty")
     hell = cfpq_hellings(graph, cfg_in_cnf)
     mul = cfpq_MxM(graph, cfg_in_cnf)
     tensor = cfpq_tensor(graph, cfg, rec_auto, heads)

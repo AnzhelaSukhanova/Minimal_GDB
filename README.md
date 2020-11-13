@@ -3,9 +3,7 @@ SPbU, fall semester 2020, formal language course
 
 | master | dev | assignment7 |
 |:------:|:---:|:-----------:|
-|[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=master)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB) |
-[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=dev)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB) |
-[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=assignment7)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB) |
+|[![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=master)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB) | [![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=dev)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB) | [![Build Status](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB.svg?branch=assignment7)](https://travis-ci.org/AnzhelaSukhanova/Minimal_GDB) |
 
 You will need the pygraphblas and pyformlang to work with this project. They can be install with:  
 `conda install -c conda-forge pygraphblas ; pip3 install pyformlang`  
