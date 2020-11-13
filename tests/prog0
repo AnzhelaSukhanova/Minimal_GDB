@@ -1,4 +1,4 @@
 connect bd108
 sel edg gr tests/graph0.txt
 sel edg (inter gr tests/graph0.txt (query s he11o * ) )
-sel # edg gr tests/graph0.txt
+sel # edg (query s 0 ! s 1)

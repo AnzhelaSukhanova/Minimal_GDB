@@ -12,6 +12,7 @@ def test_sa():
     assert syn_analyzer(cfg_in_cnf, "tests/prog1")
     assert syn_analyzer(cfg_in_cnf, "tests/prog2")
     assert syn_analyzer(cfg_in_cnf, "tests/empty")
+    assert not syn_analyzer(cfg_in_cnf, "tests/bad_prog0")
 
 
 def test_cfpq():
