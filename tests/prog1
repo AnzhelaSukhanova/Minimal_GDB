@@ -1,0 +1,4 @@
+connect s
+connect gr
+sel edg (inter gr gr gr gr)
+sel edg (query s s . s s)

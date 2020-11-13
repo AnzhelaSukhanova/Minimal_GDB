@@ -3,7 +3,7 @@ from statistics import fmean, variance
 from os import listdir
 from os.path import isdir, isfile, join
 from classes import Graph
-import grammar
+from grammar import scan_cfg, to_crf
 
 
 def cfpq_time(args):
@@ -23,8 +23,8 @@ def cfpq_time(args):
             for graph in graphs:
                 graph = Graph()
                 graph.scan(graph)
-                cfg = grammar.scan_cfg(gram)
-                cfg_in_crf = grammar.to_crf(cfg)
+                cfg = scan_cfg(gram)
+                cfg_in_crf = to_crf(cfg)
                 output = "   "
                 time_hel = timeit.repeat("cfpq_hellings(graph, cfg_in_crf)",
                                          setup="from src.main import cfpq_hellings",
@@ -40,7 +40,7 @@ def cfpq_time(args):
                                          globals=locals())
                 output += "MxM: " + str(round(fmean(time_MxM), 6)) + "   "
 
-                rec_auto, heads = grammar.build_rec_automaton(cfg)
+                rec_auto, heads = build_rec_automaton(cfg)
                 time_tensor = timeit.repeat("cfpq_tensor(graph, cfg, rec_auto, heads)",
                                             setup="from src.main import cfpq_tensor",
                                             repeat=5,
@@ -48,7 +48,7 @@ def cfpq_time(args):
                                             globals=locals())
                 output += "tensor: " + str(round(fmean(time_tensor), 6)) + "   "
 
-                rec_auto, heads = grammar.build_rec_automaton(cfg_in_crf)
+                rec_auto, heads = build_rec_automaton(cfg_in_crf)
                 time_tensor_crf = timeit.repeat("cfpq_tensor(graph, cfg_in_crf, rec_auto, heads)",
                                                 setup="from src.main import cfpq_tensor",
                                                 repeat=5,

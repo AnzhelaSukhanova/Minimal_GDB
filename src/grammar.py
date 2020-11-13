@@ -105,3 +105,17 @@ def build_rec_automaton(cfg):
             heads[ver - length, ver] = prod.head.value
             ver += 1
     return rec_auto, heads
+
+
+def add_letter_prod(cfg, var):
+    for i in range(97, 123):
+        cfg.terminals.add(Terminal(chr(i)))
+        cfg.productions.add(Production(var, [Terminal(chr(i))]))
+        cfg.productions.add(Production(var, [Terminal(chr(i)), var]))
+
+
+def add_digit_prod(cfg, var):
+    for digit in range(10):
+        cfg.terminals.add(Terminal(str(digit)))
+        cfg.productions.add(Production(var, [Terminal(str(digit))]))
+        cfg.productions.add(Production(var, [Terminal(str(digit)), var]))

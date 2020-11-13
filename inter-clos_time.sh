@@ -13,7 +13,7 @@ do
     python main.py clos_graph ${GRAPHS[i]}
     for r in $REGEXES
     do
-        python main.py intersection ${GRAPHS[i]} $r
+        python main.py inter ${GRAPHS[i]} $r
     done
 done
 

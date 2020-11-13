@@ -1,0 +1,8 @@
+connect \
+bd1
+connect\
+        bd2
+sel\
+    edg\
+        gr\
+           tests/graph0.txt

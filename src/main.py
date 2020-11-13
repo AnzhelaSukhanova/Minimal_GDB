@@ -1,10 +1,10 @@
 import argparse
-from pyformlang.cfg import Terminal
 from pygraphblas import *
-from classes import Graph
 import check_time
-import tools
-import grammar
+from grammar import *
+
+
+name_words = {'gr', 'connect', 's'}
 
 
 def cfpq_hellings(graph, cfg):
@@ -14,7 +14,7 @@ def cfpq_hellings(graph, cfg):
     if cfg.generate_epsilon():
         for i in range(graph.size):
             var_vertices.append([cfg.start_symbol, i, i])
-    terminal_i = tools.indices_of_dup(list(map(grammar.body_term, cfg.productions)))
+    terminal_i = tools.indices_of_dup(list(map(body_term, cfg.productions)))
     terminal_i.pop(None)
     for label in graph.label_boolM:
         terminal = Terminal(label)
@@ -26,7 +26,7 @@ def cfpq_hellings(graph, cfg):
                         if (i, j) in graph.label_boolM[label]:
                             var_vertices.append([var, i, j])
     triple = var_vertices.copy()
-    prod_var = grammar.pair_in_body(cfg.productions)
+    prod_var = pair_in_body(cfg.productions)
     while triple:
         var1, v1, v2 = triple.pop()
         for var2, u1, u2 in var_vertices:
@@ -55,7 +55,7 @@ def cfpq_MxM(graph, cfg):
     res.label_boolM[cfg.start_symbol] = Matrix.sparse(BOOL, res.size, res.size)
     if cfg.generate_epsilon():
         res.label_boolM[cfg.start_symbol] += Matrix.identity(BOOL, graph.size)
-    terminal_i = tools.indices_of_dup(list(map(grammar.body_term, cfg.productions)))
+    terminal_i = tools.indices_of_dup(list(map(body_term, cfg.productions)))
     terminal_i.pop(None)
     for label in graph.label_boolM:
         terminal = Terminal(label)
@@ -66,7 +66,7 @@ def cfpq_MxM(graph, cfg):
                     res.label_boolM[var] += graph.label_boolM[label]
                 else:
                     res.label_boolM[var] = graph.label_boolM[label]
-    prod_var = grammar.pair_in_body(cfg.productions)
+    prod_var = pair_in_body(cfg.productions)
     res_changes = True
     while res_changes:
         res_changes = False
@@ -111,31 +111,65 @@ def cfpq_tensor(graph, cfg, rec_auto, heads):
     return res.label_boolM[cfg.start_symbol.value]
 
 
+def syn_analyzer(syntax, prog):
+    f = open(prog, 'r')
+    for line in f:
+        line = line.rstrip()
+        while line.endswith(('\\')):
+            line = line[:len(line) - 1] + " " + f.readline()
+            line = line.rstrip()
+        words = line.split()
+        old_line = line
+        i = 0
+        prod_len = len(words)
+        while i < prod_len:
+            if words[i] in name_words:
+                if len(words) == i + 1:
+                    print("\nIncorrect syntax")
+                    print("Name/symbol is missing in '" + old_line + "'")
+                    return False
+                word_len = len(words[i + 1])
+                words = words[:i + 1] + list(words[i + 1]) + words[i+2:]
+                i += word_len
+                prod_len += word_len - 1
+                line = " ".join(words)
+                print(line)
+            i += 1
+        if not cyk(syntax, line):
+            print("\nIncorrect syntax")
+            print("Problem in '" + old_line + "'")
+            return False
+    f.close()
+    return True
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'type', nargs=1,
-        choices=['clos_graph', 'clos_regexp', 'intersection', 'cyk', 'cfpq'])
+        choices=['clos_graph', 'clos_regexp', 'inter', 'sa', 'cfpq'])
     parser.add_argument(
         'files', nargs='+')
     args = parser.parse_args()
-    if args.type == ['cyk']:
-        cfg = grammar.scan_cfg(args.files[0])
-        cfg_in_cnf = grammar.to_cnf(cfg)
-        print("Enter the word you want to check:")
-        word = input()
-        print("'", word, "' —", grammar.cyk(cfg_in_cnf, word))
+    if args.type == ['sa']:
+        cfg = scan_cfg(args.files[0])
+        cfg.variables.add(Variable("Name"))
+        add_letter_prod(cfg, Variable('Name'))
+        add_digit_prod(cfg, Variable('Name'))
+        cfg_in_cnf = to_cnf(cfg)
+        prog = args.files[1]
+        syn_analyzer(cfg_in_cnf, prog)
     elif args.type == ['cfpq']:
         graph = Graph()
         graph.scan(args.files[0])
-        cfg = grammar.scan_cfg(args.files[1])
-        rec_auto, heads = grammar.build_rec_automaton(cfg)
+        cfg = scan_cfg(args.files[1])
+        rec_auto, heads = build_rec_automaton(cfg)
         res = cfpq_tensor(graph, cfg, rec_auto, heads)
         if res is False:
             print(res)
         else:
             print(res.nvals)
-        cfg_in_cnf = grammar.to_cnf(cfg)
+        cfg_in_cnf = to_cnf(cfg)
         res = cfpq_hellings(graph, cfg_in_cnf)
         if res is False:
             print(res)
@@ -146,7 +180,7 @@ if __name__ == '__main__':
             print(res)
         else:
             print(res.nvals)
-    elif args.type == ['intersection']:
+    elif args.type == ['inter']:
         check_time.inter_time(args)
     elif args.type == ['clos_graph'] or args.type == ['clos_regexp']:
         check_time.clos_time(args)

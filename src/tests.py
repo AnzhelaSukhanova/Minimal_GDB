@@ -1,71 +1,79 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
-from pygraphblas import *
-from classes import Graph
-import main
+from main import *
+
+def test_sa():
+    cfg = scan_cfg("syntax")
+    cfg.variables.add(Variable("Name"))
+    add_letter_prod(cfg, Variable('Name'))
+    add_digit_prod(cfg, Variable('Name'))
+    cfg_in_cnf = to_cnf(cfg)
+
+    assert syn_analyzer(cfg_in_cnf, "tests/prog0")
+    assert syn_analyzer(cfg_in_cnf, "tests/prog1")
 
 
 def test_cfpq():
     graph = Graph()
     graph.scan("tests/graph2.txt")
-    cfg = main.grammar.scan_cfg("tests/grammar1.txt")
-    cfg_in_cnf = main.grammar.to_cnf(cfg)
-    hell = main.cfpq_hellings(graph, cfg_in_cnf)
-    mul = main.cfpq_MxM(graph, cfg_in_cnf)
-    rec_auto, heads = main.grammar.build_rec_automaton(cfg)
-    tensor = main.cfpq_tensor(graph, cfg, rec_auto, heads)
+    cfg = scan_cfg("tests/gram1.txt")
+    cfg_in_cnf = to_cnf(cfg)
+    hell = cfpq_hellings(graph, cfg_in_cnf)
+    mul = cfpq_MxM(graph, cfg_in_cnf)
+    rec_auto, heads = build_rec_automaton(cfg)
+    tensor = cfpq_tensor(graph, cfg, rec_auto, heads)
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
-    cfg = main.grammar.scan_cfg("tests/grammar0.txt")
-    cfg_in_cnf = main.grammar.to_cnf(cfg)
-    hell = main.cfpq_hellings(graph, cfg_in_cnf)
-    mul = main.cfpq_MxM(graph, cfg_in_cnf)
-    rec_auto, heads = main.grammar.build_rec_automaton(cfg)
-    tensor = main.cfpq_tensor(graph, cfg, rec_auto, heads)
+    cfg = scan_cfg("tests/gram0.txt")
+    cfg_in_cnf = to_cnf(cfg)
+    hell = cfpq_hellings(graph, cfg_in_cnf)
+    mul = cfpq_MxM(graph, cfg_in_cnf)
+    rec_auto, heads = build_rec_automaton(cfg)
+    tensor = cfpq_tensor(graph, cfg, rec_auto, heads)
     assert hell.iseq(Matrix.sparse(BOOL, 3, 3).full(True))
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
     graph.scan("tests/graph_empty.txt")
-    hell = main.cfpq_hellings(graph, cfg_in_cnf)
-    mul = main.cfpq_MxM(graph, cfg_in_cnf)
-    tensor = main.cfpq_tensor(graph, cfg, rec_auto, heads)
+    hell = cfpq_hellings(graph, cfg_in_cnf)
+    mul = cfpq_MxM(graph, cfg_in_cnf)
+    tensor = cfpq_tensor(graph, cfg, rec_auto, heads)
     assert not hell
     assert hell == mul == tensor
 
     graph.scan("tests/graph_loop.txt")
-    hell = main.cfpq_hellings(graph, cfg_in_cnf)
-    mul = main.cfpq_MxM(graph, cfg_in_cnf)
-    tensor = main.cfpq_tensor(graph, cfg, rec_auto, heads)
+    hell = cfpq_hellings(graph, cfg_in_cnf)
+    mul = cfpq_MxM(graph, cfg_in_cnf)
+    tensor = cfpq_tensor(graph, cfg, rec_auto, heads)
     assert hell.nvals == 1
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
     graph.scan("tests/graph0.txt")
-    cfg_in_crf = main.grammar.to_crf(cfg)
-    hell = main.cfpq_hellings(graph, cfg_in_crf)
-    mul = main.cfpq_MxM(graph, cfg_in_crf)
-    tensor = main.cfpq_tensor(graph, cfg_in_crf, rec_auto, heads)
+    cfg_in_crf = to_crf(cfg)
+    hell = cfpq_hellings(graph, cfg_in_crf)
+    mul = cfpq_MxM(graph, cfg_in_crf)
+    tensor = cfpq_tensor(graph, cfg_in_crf, rec_auto, heads)
     assert hell.nvals == 0
     assert hell.nvals == mul.nvals == tensor.nvals
 
 
 def test_cyk():
-    cfg = main.grammar.scan_cfg("tests/grammar0.txt")
-    cfg_in_cnf = main.grammar.to_cnf(cfg)
-    assert main.grammar.cyk(cfg_in_cnf, "5 5 5 5 5 5")
-    assert not main.grammar.cyk(cfg_in_cnf, "1 2 3 4 5")
-    assert main.grammar.cyk(cfg_in_cnf, "4 4 5")
-    assert not main.grammar.cyk(cfg_in_cnf, "55")
-    assert main.grammar.cyk(cfg_in_cnf, " ")
+    cfg = scan_cfg("tests/gram0.txt")
+    cfg_in_cnf = to_cnf(cfg)
+    assert cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert cyk(cfg_in_cnf, "4 4 5")
+    assert not cyk(cfg_in_cnf, "55")
+    assert cyk(cfg_in_cnf, " ")
 
-    cfg = main.grammar.scan_cfg("tests/grammar1.txt")
-    cfg_in_cnf = main.grammar.to_cnf(cfg)
-    assert main.grammar.cyk(cfg_in_cnf, "5 5 5 5 5 5")
-    assert not main.grammar.cyk(cfg_in_cnf, "1 2 3 4 5")
-    assert not main.grammar.cyk(cfg_in_cnf, "4 4 5")
-    assert not main.grammar.cyk(cfg_in_cnf, "55")
-    assert not main.grammar.cyk(cfg_in_cnf, " ")
+    cfg = scan_cfg("tests/gram1.txt")
+    cfg_in_cnf = to_cnf(cfg)
+    assert cyk(cfg_in_cnf, "5 5 5 5 5 5")
+    assert not cyk(cfg_in_cnf, "1 2 3 4 5")
+    assert not cyk(cfg_in_cnf, "4 4 5")
+    assert not cyk(cfg_in_cnf, "55")
+    assert not cyk(cfg_in_cnf, " ")
 
 
 def test_graph_inter():
