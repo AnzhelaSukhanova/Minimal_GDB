@@ -113,6 +113,7 @@ def cfpq_tensor(graph, cfg, rec_auto, heads):
 
 def syn_analyzer(syntax, prog):
     f = open(prog, 'r')
+    is_correct = 1
     for line in f:
         line = line.rstrip()
         while line.endswith(('\\')):
@@ -127,20 +128,24 @@ def syn_analyzer(syntax, prog):
                 if len(words) == i + 1:
                     print("\nIncorrect syntax")
                     print("Name/symbol is missing in '" + old_line + "'")
-                    return False
-                word_len = len(words[i + 1])
-                words = words[:i + 1] + list(words[i + 1]) + words[i+2:]
-                i += word_len
-                prod_len += word_len - 1
-                line = " ".join(words)
-                print(line)
+                    is_correct = 0
+                else:
+                    word_len = len(words[i + 1])
+                    words = words[:i + 1] + list(words[i + 1]) + words[i + 2:]
+                    i += word_len
+                    prod_len += word_len - 1
+                    line = " ".join(words)
             i += 1
         if not cyk(syntax, line):
             print("\nIncorrect syntax")
             print("Problem in '" + old_line + "'")
-            return False
+            is_correct = 0
     f.close()
-    return True
+    if is_correct:
+        print("\nCorrect syntax")
+        return True
+    else:
+        return False
 
 
 if __name__ == '__main__':
