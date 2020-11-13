@@ -136,7 +136,7 @@ def syn_analyzer(syntax, prog):
                     prod_len += word_len - 1
                     line = " ".join(words)
             i += 1
-        if not cyk(syntax, line):
+        if is_correct and not cyk(syntax, line):
             print("\nIncorrect syntax")
             print("Problem in '" + old_line + "'")
             is_correct = 0
