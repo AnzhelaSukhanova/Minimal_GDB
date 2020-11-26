@@ -1,6 +1,64 @@
 import timeit
 from statistics import fmean, variance
+from os import listdir
+from os.path import isdir, isfile, join
 from classes import Graph
+import grammar
+
+
+def cfpq_time(args):
+    paths = [join(args.files[0], folder) for folder in listdir(args.files[0]) if isdir(join(args.files[0], folder))]
+    for i in range(len(paths)):
+        path = paths[i]
+        subfolders = [join(path, folder) for folder in listdir(path) if isdir(join(path, folder))]
+        grammars = [join(subfolders[0], grm) for grm in listdir(subfolders[0]) if isfile(join(subfolders[0], grm))]
+        graphs = [join(subfolders[1], grph) for grph in listdir(subfolders[1]) if isfile(join(subfolders[1], grph))]
+        grammars.sort(key=len)
+        graphs.sort(key=len)
+        for gram in grammars:
+            f = open("time_out.txt", 'a')
+            f.write("grammar: " + gram.split('/')[-3] + " " + gram.split('/')[-1] + '\n')
+            print(gram)
+            f.close()
+            for graph in graphs:
+                graph = Graph()
+                graph.scan(graph)
+                cfg = grammar.scan_cfg(gram)
+                cfg_in_crf = grammar.to_crf(cfg)
+                output = "   "
+                time_hel = timeit.repeat("cfpq_hellings(graph, cfg_in_crf)",
+                                         setup="from src.main import cfpq_hellings",
+                                         repeat=5,
+                                         number=1,
+                                         globals=locals())
+                output += "Hel: " + str(round(fmean(time_hel), 6)) + "   "
+
+                time_MxM = timeit.repeat("cfpq_MxM(graph, cfg_in_crf)",
+                                         setup="from src.main import cfpq_MxM",
+                                         repeat=5,
+                                         number=1,
+                                         globals=locals())
+                output += "MxM: " + str(round(fmean(time_MxM), 6)) + "   "
+
+                rec_auto, heads = grammar.build_rec_automaton(cfg)
+                time_tensor = timeit.repeat("cfpq_tensor(graph, cfg, rec_auto, heads)",
+                                            setup="from src.main import cfpq_tensor",
+                                            repeat=5,
+                                            number=1,
+                                            globals=locals())
+                output += "tensor: " + str(round(fmean(time_tensor), 6)) + "   "
+
+                rec_auto, heads = grammar.build_rec_automaton(cfg_in_crf)
+                time_tensor_crf = timeit.repeat("cfpq_tensor(graph, cfg_in_crf, rec_auto, heads)",
+                                                setup="from src.main import cfpq_tensor",
+                                                repeat=5,
+                                                number=1,
+                                                globals=locals())
+                output += "tensor crf: " + str(round(fmean(time_tensor_crf), 6)) + "   "
+                f = open("time_out.txt", 'a')
+                f.write("graph: " + graph.split('/')[-3] + " " + graph.split('/')[-1] + "   " + output.replace('.', ',') + '\n')
+                print("graph: " + graph.split('/')[-3] + " " + graph.split('/')[-1] + "   " + output.replace('.', ','))
+                f.close()
 
 
 def inter_time(args):
@@ -40,9 +98,9 @@ def inter_time(args):
 
 def clos_time(args):
     graph = Graph()
-    if args.type[0] == "graph":
+    if args.type[0] == "clos_graph":
         graph.scan(args.files[0])
-    elif args.type[0] == "regexp":
+    elif args.type[0] == "clos_regexp":
         graph.scan_regexp(args.files[0])
     f = open("time_out.txt", 'a')
     f.write(str(args.files[0]) + "\n")
