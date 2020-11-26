@@ -1,0 +1,8 @@
+connect .
+connect /
+connect BD
+connect
+sel edg gr
+sel edg (query s )
+sel edg (query s * )
+sel edg (query s 0 +)
