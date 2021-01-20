@@ -1,24 +1,46 @@
 from pyformlang.finite_automaton import EpsilonNFA, State, Symbol
 from main import *
 
+
+def test_der():
+    assert derivative_check('$', 'a*.b*|$')
+    assert derivative_check('aaabbbbbb', 'a*.b*|$')
+    assert not derivative_check('', 'a*.b*|$')
+    assert not derivative_check('abba', 'a*.b*|$')
+
+    assert derivative_check('he11ohe11ohe11o', '(he11o)*')
+    assert derivative_check('$', '(he11o)*')
+    assert not derivative_check('hhheee111111ooo', '(he11o)*')
+    assert not derivative_check('(he11o)', '(he11o)*')
+
+    assert derivative_check('abababab', '(a.b)*|(c|d)*')
+    assert derivative_check('ccccc', '(a.b)*|(c|d)*')
+    assert not derivative_check('abddd', '(a.b)*|(c|d)*')
+    assert derivative_check('ac', '(a|b).c')
+    assert derivative_check('ace', '((a|b).c|d).e')
+    assert derivative_check('de', '((a|b).c|d).e')
+    assert not derivative_check('ac', '((a|b).c|d).e')
+    assert not derivative_check('$', '((a|b).c|d).e')
+
+
 def test_sa():
-    cfg = scan_cfg("syntax")
-    cfg.variables.add(Variable("Name"))
+    cfg = scan_cfg('syntax')
+    cfg.variables.add(Variable('Name'))
     add_letter_prod(cfg, Variable('Name'))
     add_digit_prod(cfg, Variable('Name'))
     cfg_in_cnf = to_cnf(cfg)
 
-    assert syn_analyzer(cfg_in_cnf, "tests/prog0")
-    assert syn_analyzer(cfg_in_cnf, "tests/prog1")
-    assert syn_analyzer(cfg_in_cnf, "tests/prog2")
-    assert syn_analyzer(cfg_in_cnf, "tests/empty")
-    assert not syn_analyzer(cfg_in_cnf, "tests/bad_prog0")
+    assert syn_analyzer(cfg_in_cnf, 'tests/prog0')
+    assert syn_analyzer(cfg_in_cnf, 'tests/prog1')
+    assert syn_analyzer(cfg_in_cnf, 'tests/prog2')
+    assert syn_analyzer(cfg_in_cnf, 'tests/empty')
+    assert not syn_analyzer(cfg_in_cnf, 'tests/bad_prog0')
 
 
 def test_cfpq():
     graph = Graph()
-    graph.scan("tests/graph2.txt")
-    cfg = scan_cfg("tests/gram1.txt")
+    graph.scan('tests/graph2.txt')
+    cfg = scan_cfg('tests/gram1.txt')
     cfg_in_cnf = to_cnf(cfg)
     hell = cfpq_hellings(graph, cfg_in_cnf)
     mul = cfpq_MxM(graph, cfg_in_cnf)
@@ -27,7 +49,7 @@ def test_cfpq():
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
-    cfg = scan_cfg("tests/gram0.txt")
+    cfg = scan_cfg('tests/gram0.txt')
     cfg_in_cnf = to_cnf(cfg)
     hell = cfpq_hellings(graph, cfg_in_cnf)
     mul = cfpq_MxM(graph, cfg_in_cnf)
@@ -37,14 +59,14 @@ def test_cfpq():
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
-    graph.scan("tests/empty")
+    graph.scan('tests/empty')
     hell = cfpq_hellings(graph, cfg_in_cnf)
     mul = cfpq_MxM(graph, cfg_in_cnf)
     tensor = cfpq_tensor(graph, cfg, rec_auto, heads)
     assert not hell
     assert hell == mul == tensor
 
-    graph.scan("tests/graph_loop.txt")
+    graph.scan('tests/graph_loop.txt')
     hell = cfpq_hellings(graph, cfg_in_cnf)
     mul = cfpq_MxM(graph, cfg_in_cnf)
     tensor = cfpq_tensor(graph, cfg, rec_auto, heads)
@@ -52,7 +74,7 @@ def test_cfpq():
     assert hell.iseq(mul)
     assert hell.iseq(tensor)
 
-    graph.scan("tests/graph0.txt")
+    graph.scan('tests/graph0.txt')
     cfg_in_crf = to_crf(cfg)
     hell = cfpq_hellings(graph, cfg_in_crf)
     mul = cfpq_MxM(graph, cfg_in_crf)
@@ -62,21 +84,21 @@ def test_cfpq():
 
 
 def test_cyk():
-    cfg = scan_cfg("tests/gram0.txt")
+    cfg = scan_cfg('tests/gram0.txt')
     cfg_in_cnf = to_cnf(cfg)
-    assert cyk(cfg_in_cnf, "5 5 5 5 5 5")
-    assert not cyk(cfg_in_cnf, "1 2 3 4 5")
-    assert cyk(cfg_in_cnf, "4 4 5")
-    assert not cyk(cfg_in_cnf, "55")
-    assert cyk(cfg_in_cnf, " ")
+    assert cyk(cfg_in_cnf, '5 5 5 5 5 5')
+    assert not cyk(cfg_in_cnf, '1 2 3 4 5')
+    assert cyk(cfg_in_cnf, '4 4 5')
+    assert not cyk(cfg_in_cnf, '55')
+    assert cyk(cfg_in_cnf, ' ')
 
-    cfg = scan_cfg("tests/gram1.txt")
+    cfg = scan_cfg('tests/gram1.txt')
     cfg_in_cnf = to_cnf(cfg)
-    assert cyk(cfg_in_cnf, "5 5 5 5 5 5")
-    assert not cyk(cfg_in_cnf, "1 2 3 4 5")
-    assert not cyk(cfg_in_cnf, "4 4 5")
-    assert not cyk(cfg_in_cnf, "55")
-    assert not cyk(cfg_in_cnf, " ")
+    assert cyk(cfg_in_cnf, '5 5 5 5 5 5')
+    assert not cyk(cfg_in_cnf, '1 2 3 4 5')
+    assert not cyk(cfg_in_cnf, '4 4 5')
+    assert not cyk(cfg_in_cnf, '55')
+    assert not cyk(cfg_in_cnf, ' ')
 
 
 def test_graph_inter():
@@ -84,19 +106,19 @@ def test_graph_inter():
     automaton = Graph()
     res = Graph()
 
-    graph.scan("tests/graph0.txt")
-    automaton.scan_regexp("tests/reg0.txt")
+    graph.scan('tests/graph0.txt')
+    automaton.scan_regexp('tests/reg0.txt')
     res.intersection(graph, automaton)
-    assert graph.label_boolM["he11o"] == res.label_boolM["he11o"]
+    assert graph.label_boolM['he11o'] == res.label_boolM['he11o']
     assert res.transitive_closure_adjM().iseq(Matrix.sparse(BOOL, 3, 3).full(True))
 
-    graph.scan("tests/graph1.txt")
-    automaton.scan_regexp("tests/reg1.txt")
+    graph.scan('tests/graph1.txt')
+    automaton.scan_regexp('tests/reg1.txt')
     res.intersection(graph, automaton)
     assert res.size == 10000
 
-    graph.scan("tests/graph0.txt")
-    automaton.scan_regexp("tests/reg1.txt")
+    graph.scan('tests/graph0.txt')
+    automaton.scan_regexp('tests/reg1.txt')
     res.intersection(graph, automaton)
     assert not res.label_boolM
 
@@ -119,7 +141,7 @@ def test_mxm():
 
 def test_enfa_inter():
     digits = [Symbol(x) for x in range(10)]
-    states = [State("q" + str(x)) for x in range(3)]
+    states = [State('q' + str(x)) for x in range(3)]
 
     enfa1 = EpsilonNFA()
     enfa1.add_start_state(states[0])

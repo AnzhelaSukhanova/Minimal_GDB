@@ -16,9 +16,9 @@ def scan_cfg(file_name):
     productions = []
     for line in f:
         read_prod = line.split()
-        productions.append(read_prod[0] + " -> " + " ".join(read_prod[1:]))
+        productions.append(read_prod[0] + ' -> ' + ' '.join(read_prod[1:]))
     f.close()
-    cfg = CFG.from_text("\n".join(productions))
+    cfg = CFG.from_text('\n'.join(productions))
     return cfg
 
 
