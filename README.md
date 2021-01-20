@@ -26,7 +26,7 @@ To see the output of the graph intersection function (in the form of a pair "lab
 Also there are implementations of reachability requests:
 `python src/main.py clos_regexp <regexp_file>` or `python src/main.py clos_graph <graph_file>`  
 You can use `python src/main.py cfpq <graph_file> <grammar_file>` to test three types of CFPQ.  
-With `python src/main.py cfpq <regexp_file>` you can check if a word (you will need to enter it) belongs to the regular language, given by the regex.  
+With `python src/main.py der <regexp_file>` you can check if a word (you will need to enter it) belongs to the regular language, given by the regex.  
 
 To parse your program do:
 `python src/main.py sa syntax <prog_file>`
