@@ -120,4 +120,4 @@ class Graph:
 
     def print_inter(self):
         for label in self.label_boolM:
-            print(label, "—", self.label_boolM[label].nvals)
+            print(label, '—', self.label_boolM[label].nvals)

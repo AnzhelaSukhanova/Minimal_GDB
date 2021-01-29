@@ -15,7 +15,8 @@ There are some simple tests to review:
 2) the implementation of graph intersection using tensor product;
 3) the implementation of CYK;
 4) three implementations of CFPQ (by Hellings Algorithm, boolean matrix multiplication and tensor product);
-5) minimal syntactical analyzer.
+5) minimal syntactical analyzer;
+6) derivative-based regular language recognizer.
 
 They can be run with the command:  
 `pytest -s src/tests.py`.  
@@ -25,6 +26,7 @@ To see the output of the graph intersection function (in the form of a pair "lab
 Also there are implementations of reachability requests:
 `python src/main.py clos_regexp <regexp_file>` or `python src/main.py clos_graph <graph_file>`  
 You can use `python src/main.py cfpq <graph_file> <grammar_file>` to test three types of CFPQ.  
+With `python src/main.py der <regexp_file>` you can check if a word (you will need to enter it) belongs to the regular language, given by the regex.  
 
 To parse your program do:
 `python src/main.py sa syntax <prog_file>`
